@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fabrilink_navy">#0B1F33</color>
+
+    <style name="Theme.FabriLink" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fabrilink_navy</item>
+        <item name="android:statusBarColor">@color/fabrilink_navy</item>
+        <item name="android:navigationBarColor">@color/fabrilink_navy</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:colorAccent">#0B8F87</item>
+    </style>
+</resources>

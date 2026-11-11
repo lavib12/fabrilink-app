@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1F33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>FabriLink — B2B Fabric Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0B1F33;--navy:#183044;--teal:#0B8F87;--teal-d:#08766F;--soft:#D7EEEA;--paper:#F5F4EF;--card:#fff;
+  --line:#E4E2DA;--muted:#5F6E7A;--amber:#B7791F;--amber-s:#FCEFD9;--red:#B83227;--red-s:#FBE3E0;--green:#2F855A;--green-s:#DDF2E6;
+  --blue:#2B6CB0;--blue-s:#E1ECF8;--grey-s:#ECEBE6;--acc:var(--teal);--acc-d:var(--teal-d);--acc-s:var(--soft);
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+  --r:14px;--sh:0 10px 30px -16px rgba(11,31,51,.35);
+}
+.role-supplier{--acc:#1F6FB2;--acc-d:#185B93;--acc-s:#E1ECF8}
+.role-admin{--acc:#183044;--acc-d:#0B1F33;--acc-s:#E3E8EE}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--paper)}
+body{font-family:"Source Sans 3",system-ui,-apple-system,sans-serif;color:var(--ink);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body.lock{overflow:hidden}
+h1,h2,h3,.brand,.mont{font-family:Montserrat,system-ui,sans-serif;letter-spacing:-.01em}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.muted{color:var(--muted)}
+.brand{font-weight:800;letter-spacing:.05em;font-size:17px;color:#fff}
+.brand span{color:var(--teal)}
+
+/* splash */
+.splash{min-height:100vh;display:grid;place-items:center;background:var(--ink)}
+.splash .brand{font-size:30px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}
+
+/* login */
+.login{min-height:100vh;display:flex;flex-direction:column}
+.login-hero{background:linear-gradient(160deg,rgba(11,31,51,.96),rgba(24,48,68,.9)),repeating-linear-gradient(45deg,#0B8F87 0 2px,transparent 2px 9px),var(--ink);color:#fff;padding:calc(56px + var(--st)) 24px 64px;text-align:center}
+.login-hero .brand{font-size:clamp(34px,7vw,52px)}
+.login-hero p{color:#b9c8d3;max-width:460px;margin:12px auto 0;font-size:18px}
+.login-body{flex:1;max-width:980px;width:100%;margin:-36px auto 0;padding:0 18px calc(32px + var(--sb))}
+.login-body h2{font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:#fff;text-align:center;margin-bottom:14px;position:relative;top:-8px}
+.portals{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:760px){.portals{grid-template-columns:1fr}}
+.portal{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:10px;transition:transform .15s}
+.portal:hover{transform:translateY(-3px)}
+.portal .pi{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff}
+.portal h3{font-size:21px}
+.portal p{color:var(--muted)}
+.portal .go{margin-top:auto;font-weight:700;color:var(--teal);display:flex;align-items:center;gap:4px}
+.fine{text-align:center;color:var(--muted);font-size:14px;margin-top:22px}
+
+/* shell */
+.shell{min-height:100vh}
+.mainwrap{min-width:0}
+.side{display:none}
+.top{position:sticky;top:0;z-index:30;background:var(--ink);color:#fff;padding:calc(10px + var(--st)) 14px 10px;display:flex;align-items:center;gap:10px}
+.top .brand{flex:1}
+.rolechip{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.12);color:#d4e1ea}
+.livechip{font-size:12px;display:flex;align-items:center;gap:5px;color:#a9bccb}
+.livechip i{width:7px;height:7px;border-radius:50%;background:#3ccf8e;box-shadow:0 0 0 3px rgba(60,207,142,.25)}
+.livechip.demo i{background:#e8b04a;box-shadow:0 0 0 3px rgba(232,176,74,.25)}
+.iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;position:relative;flex:none}
+.top .iconbtn:hover{background:rgba(255,255,255,.08)}
+.badge-n{position:absolute;top:4px;right:3px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#E5484D;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-family:Montserrat;font-weight:800;font-size:14px;flex:none}
+.content{padding:18px 16px calc(96px + var(--sb));max-width:1120px;margin:0 auto}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:6px 4px calc(6px + var(--sb))}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:11.5px;font-weight:600;color:#7b8893;border-radius:12px}
+.tabbar button.on{color:var(--acc)}
+.tabbar button.on svg{background:var(--acc-s);border-radius:10px}
+.tabbar svg{padding:3px 12px;box-sizing:content-box}
+@media(min-width:960px){
+  .shell{display:grid;grid-template-columns:248px 1fr}
+  .side{display:flex;flex-direction:column;position:sticky;top:0;height:100vh;background:var(--ink);color:#cfdbe4;padding:22px 14px}
+  .side .brand{font-size:20px;padding:0 10px 4px}
+  .side .rolechip{align-self:flex-start;margin:6px 10px 22px}
+  .side nav{display:flex;flex-direction:column;gap:4px}
+  .side nav button{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;font-weight:600}
+  .side nav button:hover{background:rgba(255,255,255,.06);color:#fff}
+  .side nav button.on{background:var(--acc);color:#fff}
+  .role-admin .side nav button.on{background:#2B4A63}
+  .side .who{margin-top:auto;display:flex;gap:10px;align-items:center;padding:12px;border-radius:14px;background:rgba(255,255,255,.05);text-align:left}
+  .side .who b{display:block;color:#fff;font-size:14px;line-height:1.2}
+  .side .who small{font-size:12px}
+  .top{background:var(--paper);color:var(--ink);border-bottom:1px solid var(--line);padding:12px 28px}
+  .top .brand,.top .rolechip,.top .avatar{display:none}
+  .top .spacer{flex:1}
+  .top .iconbtn:hover{background:var(--grey-s)}
+  .livechip{color:var(--muted)}
+  .tabbar{display:none}
+  .content{padding:28px 28px 60px}
+}
+.top .spacer{display:none}
+@media(min-width:960px){.top .spacer{display:block}}
+
+/* common blocks */
+.eyebrow{font-family:Montserrat;font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--acc)}
+.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.pagehead h1{font-size:clamp(24px,4vw,30px);font-weight:800}
+.pagehead p{color:var(--muted)}
+.h{font-size:18px;font-weight:700;margin:26px 0 12px;display:flex;justify-content:space-between;align-items:center}
+.h3{font-family:Montserrat;font-size:14px;font-weight:700;margin:20px 0 10px;display:flex;justify-content:space-between;gap:8px}
+.link{color:var(--acc);font-weight:700;font-size:14px;font-family:"Source Sans 3"}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:12px;font-weight:700;font-size:15px;white-space:nowrap;transition:background .15s,transform .1s}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.pri:hover:not(:disabled){background:var(--acc-d)}
+.btn.sec{background:var(--acc-s);color:var(--acc-d)}
+.btn.ghost{border:1px solid var(--line);background:#fff}
+.btn.danger{background:var(--red-s);color:var(--red)}
+.btn.ok{background:var(--green-s);color:var(--green)}
+.btn.lg{padding:14px 20px;font-size:16px}
+.btn.sm{padding:7px 12px;font-size:13.5px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.banner{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);margin-bottom:16px;font-size:15px}
+.banner b{display:block}
+.banner.warn{background:var(--amber-s);color:#7a4f0f}
+.banner.bad{background:var(--red-s);color:#7f1d16}
+.banner.info{background:var(--blue-s);color:#1d4a7a}
+.empty{text-align:center;padding:36px 18px;color:var(--muted);background:#fff;border:1px dashed var(--line);border-radius:var(--r);grid-column:1/-1}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.empty .btn{margin-top:14px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-teal{background:var(--soft);color:var(--teal-d)}.p-amber{background:var(--amber-s);color:#8a5a12}.p-green{background:var(--green-s);color:var(--green)}
+.p-red{background:var(--red-s);color:var(--red)}.p-blue{background:var(--blue-s);color:var(--blue)}.p-grey{background:var(--grey-s);color:#666}
+.vf{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--teal);color:#fff;vertical-align:-2px}
+.tag{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.grade{font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:6px;font-family:Montserrat}
+.gA{background:#1C2D4F;color:#fff}.gB{background:#D7EEEA;color:#08766F}.gC{background:#ECEBE6;color:#555}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.15);vertical-align:-1px}
+.dot.lg{width:38px;height:38px;border-radius:12px;flex:none}
+.stars{color:#E3A008;letter-spacing:1px}
+
+/* home */
+.hello{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;flex-wrap:wrap;background:linear-gradient(135deg,var(--ink),var(--navy));color:#fff;border-radius:20px;padding:22px;position:relative;overflow:hidden}
+.hello::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:repeating-linear-gradient(45deg,rgba(255,255,255,.07) 0 2px,transparent 2px 8px)}
+.hello h1{font-size:clamp(22px,4vw,30px);margin:6px 0 4px;font-weight:800}
+.hello p{color:#b9c8d3}
+.hello .eyebrow{color:#7fd6cf}
+.role-supplier .hello .eyebrow{color:#9cc8ef}
+.hello-cta{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:1}
+.hello .btn.sec{background:rgba(255,255,255,.12);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.stat small{color:var(--muted);font-weight:600;font-size:13px}
+.stat b{display:block;font-family:Montserrat;font-size:24px;font-weight:800;margin-top:2px}
+.stat.click{cursor:pointer}.stat.click:hover{border-color:var(--acc)}
+.hscroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;margin:0 -16px;padding-left:16px;padding-right:16px}
+.hscroll::-webkit-scrollbar{display:none}
+.sectile{flex:none;width:118px;display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px;line-height:1.2}
+.sectile .art{height:84px;border-radius:14px;display:grid;place-items:center;color:var(--muted);border:2px solid transparent;transition:border-color .15s, transform .15s}
+.sectile .art.any{background:var(--grey-s)}
+.sectile small{color:var(--muted);font-weight:500;font-size:12.5px}
+.sectile:hover .art{transform:translateY(-2px)}
+.sectile.on .art{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-s)}
+.sectile.big{width:auto}
+
+/* product cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s}
+.pcard:hover{transform:translateY(-3px);box-shadow:var(--sh)}
+.stripe{height:92px;display:block}
+.pc-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.pc-top{display:flex;justify-content:space-between;align-items:center}
+.pc-name{font-size:17px;line-height:1.25}
+.pc-sup{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.pc-meta{font-size:13.5px;color:var(--muted)}
+.pc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px}
+.price{font-family:Montserrat;font-weight:800;font-size:18px}
+.price small{font-size:12px;color:var(--muted);font-weight:600}
+.sws{display:flex;align-items:center}
+.sws i{width:18px;height:18px;border-radius:50%;border:2px solid #fff;margin-left:-6px;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.sws em{font-style:normal;font-size:12px;color:var(--muted);margin-left:4px;font-weight:700}
+.pc-actions{display:flex;gap:8px;padding:0 14px 14px}
+
+/* toolbar */
+.toolbar{display:flex;gap:10px;margin-bottom:12px}
+.search{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 12px;color:var(--muted)}
+.search input{flex:1;border:0;outline:0;padding:11px 0;background:none;color:var(--ink);min-width:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--acc-s);color:var(--acc-d);border-radius:999px;padding:5px 6px 5px 12px;font-weight:700;font-size:14px}
+.chip button{width:22px;height:22px;border-radius:50%;display:grid;place-items:center}
+.chip button:hover{background:rgba(0,0,0,.07)}
+.seg{display:inline-flex;background:var(--grey-s);border-radius:12px;padding:4px;margin-bottom:14px;gap:2px;max-width:100%;overflow-x:auto}
+.seg button{padding:8px 14px;border-radius:9px;font-weight:700;font-size:14px;color:var(--muted);white-space:nowrap}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* rows */
+.list{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px;width:100%;transition:border-color .15s}
+button.row:hover{border-color:var(--acc)}
+.row-art{width:48px;height:48px;border-radius:12px;flex:none;display:grid;place-items:end;padding:5px;align-self:flex-start}
+.row-art i{width:16px;height:16px;border-radius:50%;border:2px solid #fff}
+.row-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.row-main b{font-size:16px;line-height:1.25}
+.row-main small{color:var(--muted);font-size:13.5px}
+.row-side{display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right;flex:none}
+.row-side small{color:var(--muted);font-size:12.5px}
+.prog{height:5px;background:var(--grey-s);border-radius:3px;margin-top:6px;overflow:hidden;max-width:260px}
+.prog i{display:block;height:100%;background:var(--acc);border-radius:3px}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+/* sheet */
+#sheet{position:fixed;inset:0;z-index:60;display:none}
+#sheet.on{display:block}
+.backdrop{position:absolute;inset:0;background:rgba(11,31,51,.5);animation:fade .2s}
+.panel{position:absolute;left:0;right:0;bottom:0;max-height:94vh;background:var(--paper);border-radius:22px 22px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+.panel.enter{animation:up .28s cubic-bezier(.2,.8,.2,1)}
+.panel::before{content:"";width:40px;height:5px;border-radius:3px;background:#cfd3d6;position:absolute;top:8px;left:50%;transform:translateX(-50%)}
+@keyframes up{from{transform:translateY(100%)}}
+@keyframes fade{from{opacity:0}}
+@media(min-width:760px){
+  .panel{left:50%;top:50%;bottom:auto;transform:translate(-50%,-50%);width:min(620px,94vw);max-height:88vh;border-radius:22px}
+  .panel.wide{width:min(760px,94vw)}
+  .panel.enter{animation:pop .22s ease-out}
+  .panel::before{display:none}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,-46%)}}
+}
+.sheet-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:22px 18px 10px}
+.sheet-head h2{font-size:21px;font-weight:800;line-height:1.2}
+.sheet-head p{color:var(--muted);font-size:14.5px;margin-top:3px}
+.sheet-head .iconbtn{background:#fff;border:1px solid var(--line);width:36px;height:36px}
+.sheet-body{padding:6px 18px 18px;overflow-y:auto;flex:1;overscroll-behavior:contain}
+.sheet-foot{display:flex;gap:10px;padding:12px 18px calc(12px + var(--sb));border-top:1px solid var(--line);background:#fff;border-radius:0 0 22px 22px}
+.sheet-foot .btn{flex:1}
+.sheet-foot.three .btn{flex:1;padding-left:8px;padding-right:8px;font-size:14px}
+@media(max-width:759px){.sheet-foot{border-radius:0}}
+.hero-stripe{height:110px;border-radius:16px;margin-bottom:12px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.spec:last-child:nth-child(odd){grid-column:1/-1}
+.stripe{box-shadow:inset 0 -1px 0 rgba(0,0,0,.08)}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.spec{background:#fff;padding:10px 12px}
+.spec small{display:block;color:var(--muted);font-size:12.5px;font-weight:600}
+.spec b{font-size:15px}
+.notes{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-top:10px;font-size:15px}
+.swpick{display:flex;flex-wrap:wrap;gap:8px}
+.swbtn{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:#fff;border:1.5px solid var(--line);font-weight:600;font-size:14px}
+.swbtn i{width:24px;height:24px;border-radius:50%;border:1px solid rgba(0,0,0,.12)}
+.swbtn.on{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-s)}
+.qty{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.qty span{color:var(--muted)}
+.qty b{color:var(--ink);font-family:Montserrat}
+input.inp,.qty input,.form input,.form select,.form textarea,.inline input,.inline select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;outline:0}
+.qty input{width:150px}
+.form input:focus,.form select:focus,.form textarea:focus,.qty input:focus,.inline input:focus,input.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-s)}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+.form .full{grid-column:1/-1}
+@media(max-width:480px){.form{grid-template-columns:1fr}}
+.inline{display:flex;gap:8px;align-items:center}
+.inline input[type=color]{width:52px;padding:3px;height:44px;flex:none}
+
+/* configurator */
+.stepper{display:flex;gap:6px;padding:0 18px 10px;overflow-x:auto;scrollbar-width:none}
+.st{display:flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:700;font-size:13px;color:var(--muted);white-space:nowrap}
+.st span{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--grey-s);font-size:12px}
+.st.on{border-color:var(--acc);color:var(--ink)}
+.st.on span{background:var(--acc);color:#fff}
+.st.done span{background:var(--acc-s);color:var(--acc-d)}
+.secgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.secgrid .art{height:90px}
+.hint{color:var(--muted);margin-bottom:10px;font-size:14.5px}
+.colgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
+.colbtn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:14px;background:#fff;border:1.5px solid var(--line);font-size:13px;font-weight:600;text-align:center;line-height:1.15;position:relative}
+.colbtn i{width:44px;height:44px;border-radius:50%;border:1px solid rgba(0,0,0,.12);box-shadow:inset 0 -6px 10px rgba(0,0,0,.08)}
+.colbtn i.any{background:conic-gradient(#C62D2D,#D9A520,#0B8F87,#2B59C3,#6E1F2B,#C62D2D)}
+.colbtn.on{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-s)}
+.colbtn.on::after{content:"✓";position:absolute;top:6px;right:8px;width:18px;height:18px;border-radius:50%;background:var(--acc);color:#fff;font-size:11px;display:grid;place-items:center;font-weight:800}
+.qgrid{display:grid;gap:10px}
+.qcard{display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:2px;align-items:center;padding:14px;border-radius:14px;background:#fff;border:1.5px solid var(--line)}
+.qcard .grade{grid-row:span 2}
+.qcard small{color:var(--muted);grid-column:2}
+.qcard.on{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-s)}
+.range{width:100%;accent-color:var(--acc)}
+.range-l{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.cfgsum{display:flex;gap:8px;flex-wrap:wrap;padding:10px 18px;background:#fff;border-top:1px solid var(--line);font-size:13.5px}
+.cfgsum span{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border-radius:999px;padding:4px 10px;font-weight:600}
+.cfgsum span.unset{color:#9aa4ad;font-weight:500}
+
+/* checkout */
+.sumcard{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.sum-top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.sum-top small{display:block;color:var(--muted)}
+.line{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line);font-size:15px}
+.line.b{font-weight:800;font-size:17px}
+.radios{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.radio{padding:12px;border-radius:12px;background:#fff;border:1.5px solid var(--line)}
+.radio small{display:block;color:var(--muted);font-size:13px}
+.radio.on{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-s)}
+
+/* bids */
+.bid{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.bid+.bid{margin-top:10px}
+.bid.best{border-color:var(--teal);box-shadow:0 0 0 2px var(--soft)}
+.bid .nums{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.bid .nums b{color:var(--ink);font-family:Montserrat}
+.bid .tags{display:flex;gap:6px;flex-wrap:wrap}
+.bid .note{grid-column:1/-1;font-size:14px;color:var(--muted)}
+
+/* timeline */
+.tl{list-style:none;position:relative;margin:4px 0}
+.tl li{position:relative;padding:0 0 14px 30px;color:#9aa4ad}
+.tl li::before{content:"";position:absolute;left:8px;top:18px;bottom:-2px;width:2px;background:var(--line)}
+.tl li:last-child::before{display:none}
+.tl li span{position:absolute;left:0;top:2px;width:18px;height:18px;border-radius:50%;border:2px solid var(--line);background:#fff}
+.tl li.done{color:var(--ink)}
+.tl li.done span{background:var(--acc);border-color:var(--acc)}
+.tl li.done::before{background:var(--acc)}
+.tl li.cur span{box-shadow:0 0 0 4px var(--acc-s)}
+.tl li b{font-size:15px;display:block}
+.tl li small{color:var(--muted);font-size:13px}
+.action{background:var(--acc-s);border-radius:var(--r);padding:14px;margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.action b{color:var(--acc-d)}
+.starpick{display:flex;gap:4px}
+.starpick button{font-size:30px;color:#d6d3c9;line-height:1}
+.starpick button.on{color:#E3A008}
+
+/* chat */
+.chat{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding:4px 2px}
+.msg{max-width:82%;padding:9px 12px;border-radius:14px;background:#fff;border:1px solid var(--line);font-size:15px;align-self:flex-start}
+.msg.me{align-self:flex-end;background:var(--acc);color:#fff;border-color:var(--acc)}
+.msg small{display:block;font-size:11.5px;opacity:.7;margin-top:2px}
+.chatbar{display:flex;gap:8px;margin-top:10px}
+.chatbar input{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:999px;outline:0;background:#fff;min-width:0}
+
+/* admin */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.kpi small{color:var(--muted);font-weight:600;font-size:13px}
+.kpi b{display:block;font-family:Montserrat;font-size:clamp(20px,3vw,26px);font-weight:800;margin-top:2px}
+.kpi em{font-style:normal;font-size:12.5px;color:var(--muted)}
+.kpi.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.kpi.dark small,.kpi.dark em{color:#a9bccb}
+.grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.bars{display:flex;flex-direction:column;gap:12px}
+.bar{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;font-size:14px;font-weight:600}
+.bar .track{height:12px;background:var(--grey-s);border-radius:6px;overflow:hidden}
+.bar .track i{display:block;height:100%;border-radius:6px;background:var(--teal)}
+.bar span:last-child{font-family:Montserrat;font-size:13px}
+.feed{display:flex;flex-direction:column}
+.feed div{padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}
+.feed div:first-child{border-top:0}
+.feed small{display:block;color:var(--muted);font-size:12.5px}
+.co{display:grid;grid-template-columns:auto 1fr;gap:12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.co .avatar{width:44px;height:44px;border-radius:12px;font-size:16px}
+.co h3{font-size:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.co .meta{color:var(--muted);font-size:14px;margin-top:2px}
+.co .kv{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13.5px;margin-top:6px}
+.co .kv span{color:var(--muted)}
+.co .kv b{color:var(--ink);font-weight:600}
+.colist{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.optlist{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.opt{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 6px 5px 12px;font-weight:600;font-size:14px}
+.opt button{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.opt button:hover{background:var(--red-s);color:var(--red)}
+.settings{display:grid;gap:16px}
+.settings .card h3{font-size:17px;margin-bottom:4px}
+.settings .card>p{color:var(--muted);font-size:14px;margin-bottom:12px}
+
+/* notifications */
+.notif{display:flex;gap:12px;padding:12px;border-radius:12px;background:#fff;border:1px solid var(--line);width:100%;text-align:left}
+.notif+.notif{margin-top:8px}
+.notif.unread{border-color:var(--acc);background:linear-gradient(90deg,var(--acc-s),#fff 60%)}
+.notif small{display:block;color:var(--muted);font-size:12.5px}
+.pick{display:flex;flex-direction:column;gap:8px}
+.pick .row{cursor:pointer}
+
+#toast{position:fixed;left:50%;bottom:calc(88px + var(--sb));transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;font-size:15px;opacity:0;pointer-events:none;transition:all .25s;z-index:80;max-width:min(92vw,460px);text-align:center;box-shadow:var(--sh)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media(max-width:959px){#toast{bottom:auto;top:calc(12px + var(--st));transform:translate(-50%,-20px)}#toast.on{transform:translate(-50%,0)}}
+@media(min-width:960px){#toast{bottom:28px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="sheet"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script>
+function makeSeed(now){
+  const D = 86400000, H = 3600000;
+  const options = {
+    commission: 2.5,
+    sections: [
+      {id:'cotton',name:'Cotton Woven'},{id:'denim',name:'Denim'},{id:'knit',name:'Knit / Jersey'},
+      {id:'twill',name:'Twill / Chino'},{id:'viscose',name:'Viscose / Rayon'},{id:'poly',name:'Polyester'},
+      {id:'linen',name:'Linen'},{id:'fleece',name:'Fleece'}
+    ],
+    colours: [
+      {name:'White',hex:'#FFFFFF'},{name:'Off-White',hex:'#F1EBDD'},{name:'Black',hex:'#141414'},
+      {name:'Navy',hex:'#1C2D4F'},{name:'Indigo',hex:'#2E3A87'},{name:'Royal Blue',hex:'#2B59C3'},
+      {name:'Sky Blue',hex:'#8EC5E8'},{name:'Teal',hex:'#0B8F87'},{name:'Bottle Green',hex:'#1F4D36'},
+      {name:'Olive',hex:'#6B7240'},{name:'Khaki',hex:'#B5A36A'},{name:'Beige',hex:'#D8C3A5'},
+      {name:'Mustard',hex:'#D9A520'},{name:'Red',hex:'#C62D2D'},{name:'Maroon',hex:'#6E1F2B'},
+      {name:'Pink',hex:'#E7A1B0'},{name:'Grey Melange',hex:'#9EA3A8'},{name:'Charcoal',hex:'#3A3F44'}
+    ],
+    qualities: [
+      {id:'A',name:'Premium',grade:'Grade A',desc:'Combed yarn · AQL 1.5 · ±3% GSM tolerance'},
+      {id:'B',name:'Standard',grade:'Grade B',desc:'Carded yarn · AQL 2.5 · ±5% GSM tolerance'},
+      {id:'C',name:'Economy',grade:'Grade C',desc:'Open-end yarn · AQL 4.0 · ±7% GSM tolerance'}
+    ]
+  };
+  const companies = [
+    {id:'b1',type:'buyer',name:'Shapla Apparels Ltd',city:'Gazipur',license:'TRAD/DNCC/04512',bin:'000451239-0101',kyc:'verified',status:'active',created:now-120*D},
+    {id:'b2',type:'buyer',name:'Nodi Fashion Wear',city:'Narayanganj',license:'TRAD/NCC/11873',bin:'001187344-0202',kyc:'verified',status:'active',created:now-90*D},
+    {id:'b3',type:'buyer',name:'Teesta Garments',city:'Ashulia',license:'TRAD/SAV/22019',bin:'002201977-0101',kyc:'pending',status:'active',created:now-1*D},
+    {id:'s1',type:'supplier',name:'Rupsha Textile Mills',city:'Narsingdi',license:'TRAD/NAR/00981',bin:'000098123-0303',kyc:'verified',status:'active',rating:4.7,reviews:3,created:now-200*D},
+    {id:'s2',type:'supplier',name:'Padma Denim Ltd',city:'Savar',license:'TRAD/SAV/03344',bin:'000334455-0101',kyc:'verified',status:'active',rating:4.3,reviews:2,created:now-160*D},
+    {id:'s3',type:'supplier',name:'Karnaphuli Knit Fabrics',city:'Chattogram',license:'TRAD/CCC/07760',bin:'000776012-0404',kyc:'pending',status:'active',rating:0,reviews:0,created:now-2*D}
+  ];
+  const P = (id,sup,name,section,colours,quality,gsm,width,price,moq,stock,composition,age) =>
+    ({id,supplierId:sup,name,section,colours,quality,gsm,width,price,moq,stock,composition,created:now-age*D});
+  const products = [
+    P('p1','s1','Combed Cotton Poplin','cotton',['White','Off-White','Sky Blue','Navy'],'A',120,58,210,1000,18000,'100% Cotton',30),
+    P('p2','s1','Oxford Shirting','cotton',['White','Sky Blue','Pink'],'B',140,57,185,1500,12000,'100% Cotton',25),
+    P('p3','s2','Stretch Denim 10 oz','denim',['Indigo','Black','Navy'],'A',340,60,420,2000,25000,'Cotton-Spandex 98/2',22),
+    P('p4','s2','Rigid Denim 12 oz','denim',['Indigo','Charcoal'],'B',400,58,360,2500,9000,'100% Cotton',18),
+    P('p5','s1','Single Jersey 160','knit',['White','Black','Grey Melange','Red','Bottle Green'],'B',160,72,240,800,30000,'CVC 60/40',15),
+    P('p6','s3','Polar Fleece','fleece',['Navy','Charcoal','Maroon'],'B',280,60,310,1000,8000,'100% Polyester',2),
+    P('p7','s2','Cotton Twill Chino','twill',['Khaki','Olive','Navy','Beige'],'A',250,58,295,1200,14000,'Cotton-Spandex 98/2',10),
+    P('p8','s1','Viscose Challis Print Base','viscose',['Mustard','Pink','Teal','Off-White'],'C',110,55,175,1000,6000,'100% Viscose',6),
+    P('p9','s1','Pique Knit','knit',['White','Navy','Royal Blue'],'A',220,70,280,1000,10000,'PC 65/35',4)
+  ];
+  const rfqs = [
+    {id:'r1',buyerId:'b1',section:'knit',colour:'Navy',quality:'A',gsm:180,qty:5000,target:260,deadline:new Date(now+12*D).toISOString().slice(0,10),notes:'Polo shirts for an EU export order. Needs OEKO-TEX certificate.',status:'open',created:now-2*D},
+    {id:'r2',buyerId:'b2',section:'denim',colour:'Indigo',quality:'B',gsm:380,qty:8000,target:380,deadline:new Date(now+9*D).toISOString().slice(0,10),notes:'Five-pocket jeans, enzyme wash.',status:'open',created:now-1*D}
+  ];
+  const bids = [
+    {id:'k1',rfqId:'r1',supplierId:'s1',price:268,lead:18,note:'Includes lab dip within 4 days.',status:'pending',created:now-1*D},
+    {id:'k2',rfqId:'r1',supplierId:'s2',price:274,lead:14,note:'Can expedite with air freight of yarn.',status:'pending',created:now-20*H},
+    {id:'k3',rfqId:'r2',supplierId:'s2',price:372,lead:20,note:'Shade band available on request.',status:'pending',created:now-6*H}
+  ];
+  const hist = (arr) => arr.map(([s,ago]) => ({s, t: now-ago}));
+  const orders = [
+    {id:'o1',buyerId:'b1',supplierId:'s2',productId:'p3',rfqId:null,title:'Stretch Denim 10 oz',section:'denim',colour:'Indigo',quality:'A',gsm:340,qty:6000,price:415,total:2490000,pay:'bank',payState:'held',status:'production',tracking:null,review:null,created:now-9*D,history:hist([['placed',9*D],['paid',9*D],['production',6*D]])},
+    {id:'o2',buyerId:'b2',supplierId:'s1',productId:'p5',rfqId:null,title:'Single Jersey 160',section:'knit',colour:'Black',quality:'B',gsm:160,qty:4000,price:236,total:944000,pay:'lc',payState:'held',status:'shipped',tracking:'FLX-482193 · FL Logistics',review:null,created:now-16*D,history:hist([['placed',16*D],['paid',16*D],['production',13*D],['qc',5*D],['shipped',2*D]])},
+    {id:'o3',buyerId:'b1',supplierId:'s1',productId:'p1',rfqId:null,title:'Combed Cotton Poplin',section:'cotton',colour:'White',quality:'A',gsm:120,qty:3000,price:205,total:615000,pay:'bkash',payState:'released',status:'delivered',tracking:'FLX-410772 · FL Logistics',review:{stars:5,text:'Shade and width exactly as specified.'},created:now-40*D,history:hist([['placed',40*D],['paid',40*D],['production',37*D],['qc',30*D],['shipped',28*D],['delivered',25*D]])},
+    {id:'o4',buyerId:'b2',supplierId:'s2',productId:'p7',rfqId:null,title:'Cotton Twill Chino',section:'twill',colour:'Khaki',quality:'A',gsm:250,qty:5000,price:290,total:1450000,pay:'bank',payState:'released',status:'delivered',tracking:'FLX-399120 · FL Logistics',review:{stars:4,text:'Good hand feel; delivery two days late.'},created:now-55*D,history:hist([['placed',55*D],['paid',55*D],['production',52*D],['qc',44*D],['shipped',42*D],['delivered',38*D]])}
+  ];
+  const samples = [
+    {id:'m1',buyerId:'b2',supplierId:'s2',productId:'p7',title:'Cotton Twill Chino',colour:'Olive',status:'requested',tracking:null,created:now-1*D},
+    {id:'m2',buyerId:'b1',supplierId:'s1',productId:'p5',title:'Single Jersey 160',colour:'Grey Melange',status:'dispatched',tracking:'FLX-20931',created:now-3*D}
+  ];
+  const disputes = [
+    {id:'d1',orderId:'o2',raisedBy:'b2',against:'s1',reason:'Late delivery',details:'Shipment left the mill 3 days after the agreed date.',status:'open',created:now-1*D}
+  ];
+  const messages = [
+    {id:'x1',orderId:'o1',from:'b1',text:'Please share lab dip approval before bulk dyeing.',ts:now-7*D},
+    {id:'x2',orderId:'o1',from:'s2',text:'Lab dip sent by courier today — ETA 2 days.',ts:now-7*D+3*H}
+  ];
+  const notifs = [
+    {id:'n1',to:'s1',text:'New RFQ: Knit / Jersey · Navy · 5,000 m from Shapla Apparels Ltd',link:{type:'rfq',id:'r1'},ts:now-2*D,read:false},
+    {id:'n2',to:'b1',text:'Rupsha Textile Mills bid ৳268/m on your RFQ #R1',link:{type:'rfq',id:'r1'},ts:now-1*D,read:false},
+    {id:'n3',to:'b1',text:'Padma Denim Ltd bid ৳274/m on your RFQ #R1',link:{type:'rfq',id:'r1'},ts:now-20*H,read:false},
+    {id:'n4',to:'admin',text:'Karnaphuli Knit Fabrics registered as a supplier — KYC review needed',link:null,ts:now-2*D,read:false},
+    {id:'n5',to:'admin',text:'Teesta Garments registered as a buyer — KYC review needed',link:null,ts:now-1*D,read:false},
+    {id:'n6',to:'admin',text:'Dispute opened on order #O2 by Nodi Fashion Wear',link:null,ts:now-1*D,read:false},
+    {id:'n7',to:'s2',text:'New sample request: Cotton Twill Chino (Olive) from Nodi Fashion Wear',link:null,ts:now-1*D,read:false}
+  ];
+  return {options, companies, products, rfqs, bids, orders, samples, disputes, messages, notifs};
+}
+if (typeof module !== 'undefined') module.exports = makeSeed;
+
+</script>
+<script>
+"use strict";
+const CFG=window.FABRILINK_CONFIG||{};
+const WHERE=CFG.app?'on this device':'in this browser';
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=n=>Number(n||0).toLocaleString('en-IN');
+const money=n=>'৳'+Math.round(Number(n)||0).toLocaleString('en-IN');
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const ref=id=>'#'+String(id).slice(-5).toUpperCase();
+const byNew=(a,b)=>(b.created||b.ts||0)-(a.created||a.ts||0);
+const sum=a=>a.reduce((x,y)=>x+(Number(y)||0),0);
+const dateIn=d=>new Date(Date.now()+d*864e5).toISOString().slice(0,10);
+function ago(t){if(!t)return'';const s=(Date.now()-t)/1000;if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400)return Math.floor(s/3600)+' h ago';if(s<86400*7)return Math.floor(s/86400)+' d ago';return new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+function fdate(s){if(!s)return'—';const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
+function greet(){const h=new Date().getHours();return h<12?'Good morning':h<17?'Good afternoon':'Good evening'}
+
+const ICONS={
+home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+file:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/>',
+box:'<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+swatch:'<rect x="4" y="3" width="10" height="14" rx="2"/><path d="M14 7h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-2"/>',
+chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+settings:'<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',
+search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+truck:'<path d="M1 6h13v10H1zM14 10h4l3 3v3h-7"/><circle cx="5" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+alert:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+logout:'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11"/>',
+x:'<path d="M6 6l12 12M18 6L6 18"/>',
+check:'<path d="M5 12l5 5 9-10"/>',
+chev:'<path d="M9 6l6 6-6 6"/>',
+send:'<path d="M4 12l16-8-6 16-2-6z"/>',
+users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>'
+};
+const ic=(n,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
+
+/* ---------- data store ---------- */
+const COLS=['companies','products','rfqs','bids','samples','orders','disputes','notifs','messages'];
+const D={options:null};COLS.forEach(c=>D[c]={});
+let MODE='loading',DB=null;
+const LSKEY='fabrilink-demo-v2';
+const DEFAULT_OPTIONS=makeSeed(Date.now()).options;
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function saveLocal(){if(MODE==='local')lsSet(LSKEY,JSON.stringify(D))}
+function loadLocal(){const r=lsGet(LSKEY);if(!r)return false;try{const o=JSON.parse(r);if(!o||!o.options)return false;D.options=o.options;COLS.forEach(c=>D[c]=o[c]||{});return true}catch(e){return false}}
+function seedLocal(){const s=makeSeed(Date.now());D.options=s.options;COLS.forEach(c=>{D[c]={};(s[c]||[]).forEach(x=>D[c][x.id]=x)});saveLocal()}
+const all=c=>Object.values(D[c]);
+const get=(c,id)=>D[c][id];
+const chains={};
+function dbWrite(path,fn){
+  const p=(chains[path]||Promise.resolve()).then(fn).catch(e=>{
+    const code=e&&e.code;
+    if(code==='permission-denied')toast('The database refused this change — check your Firestore security rules.');
+    else if(code==='invalid_argument')toast('You have view-only access here — ask the owner to make you a Contributor.');
+    else if(code==='quota_exceeded')toast('Storage is full — remove old items and try again.');
+    else toast('Could not save — check your connection.');
+  });
+  chains[path]=p;return p;
+}
+function put(c,obj){D[c]={...D[c],[obj.id]:obj};if(MODE==='db')dbWrite(c+'/'+obj.id,()=>DB.collection(c).doc(obj.id).set(clone(obj)));else saveLocal();render()}
+function del(c,id){const n={...D[c]};delete n[id];D[c]=n;if(MODE==='db')dbWrite(c+'/'+id,()=>DB.collection(c).doc(id).delete());else saveLocal();render()}
+function putOptions(o){D.options=o;if(MODE==='db')dbWrite('config/options',()=>DB.doc('config/options').set(clone(o)));else saveLocal();render()}
+function edit(c,id,fn){const o=clone(get(c,id));fn(o);put(c,o);return o}
+
+/* ---------- lookups ---------- */
+const O=()=>D.options||DEFAULT_OPTIONS;
+const sec=id=>O().sections.find(s=>s.id===id);
+const secName=id=>id?(sec(id)?.name||'Other'):'Any section';
+const colour=n=>O().colours.find(c=>c.name===n);
+const hex=n=>colour(n)?.hex||'#c9c9c9';
+const qual=id=>O().qualities.find(q=>q.id===id);
+const qualName=id=>qual(id)?`${qual(id).name} · ${qual(id).grade}`:(id?id:'Any quality');
+const comp=id=>get('companies',id);
+const cname=id=>id==='admin'?'FabriLink Admin':(comp(id)?.name||'Unknown company');
+const me=()=>U.actor==='admin'?null:comp(U.actor);
+const verified=id=>comp(id)?.kyc==='verified'&&comp(id)?.status!=='suspended';
+const vbadge=id=>verified(id)?`<span class="vf" title="Verified business">${ic('check',11)}</span>`:'';
+const bidsFor=rid=>all('bids').filter(b=>b.rfqId===rid&&b.status!=='withdrawn');
+const STEPS=[['placed','Order placed'],['paid','Payment held in escrow'],['production','In production'],['qc','Quality check passed'],['shipped','Shipped'],['delivered','Delivered']];
+const stepIdx=s=>STEPS.findIndex(x=>x[0]===s);
+const PAY=[['bkash','bKash','Mobile wallet'],['nagad','Nagad','Mobile wallet'],['bank','Bank transfer','EFT / RTGS'],['lc','Letter of credit','For export orders']];
+const payName=k=>(PAY.find(p=>p[0]===k)||[k,k])[1];
+const COMPOSITIONS=['100% Cotton','CVC 60/40','PC 65/35','Cotton-Spandex 98/2','100% Polyester','100% Viscose','Linen-Cotton 55/45','Nylon-Spandex 80/20'];
+const PATS=['repeating-linear-gradient(45deg,rgba(255,255,255,.2) 0 2px,transparent 2px 7px)','repeating-linear-gradient(0deg,rgba(255,255,255,.16) 0 1px,transparent 1px 5px),repeating-linear-gradient(90deg,rgba(0,0,0,.14) 0 1px,transparent 1px 5px)','radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px','repeating-linear-gradient(-45deg,rgba(255,255,255,.18) 0 3px,transparent 3px 6px),repeating-linear-gradient(45deg,rgba(0,0,0,.1) 0 3px,transparent 3px 6px)','repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 2px,transparent 2px 9px)','repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 1px,transparent 1px 4px)'];
+const SECCOL=['#2B4A63','#2E3A87','#0B8F87','#8C6A3E','#6B5B95','#3E6E8E','#6B7240','#7A3B4A','#5E7F80','#9A5B2E'];
+function secArt(id){const i=Math.max(0,O().sections.findIndex(s=>s.id===id));return`background:${PATS[i%PATS.length]},${SECCOL[i%SECCOL.length]}`}
+function stripe(cols){cols=(cols||[]).filter(Boolean);const n=cols.length||1;const segs=cols.length?cols.map((c,i)=>`${hex(c)} ${(i*100/n).toFixed(2)}% ${((i+1)*100/n).toFixed(2)}%`).join(','):'#ccc 0% 100%';return`background:repeating-linear-gradient(45deg,rgba(255,255,255,.13) 0 2px,transparent 2px 6px),repeating-linear-gradient(-45deg,rgba(0,0,0,.05) 0 2px,transparent 2px 6px),linear-gradient(90deg,${segs})`}
+const PILL={open:['Open','teal'],awarded:['Awarded','blue'],closed:['Closed','grey'],pending:['Pending','amber'],accepted:['Accepted','green'],rejected:['Not selected','grey'],withdrawn:['Withdrawn','grey'],requested:['Requested','amber'],dispatched:['Dispatched','blue'],approved:['Approved','green'],declined:['Declined','red'],placed:['Placed','amber'],paid:['Awaiting production','amber'],production:['In production','blue'],qc:['QC passed','blue'],shipped:['Shipped','blue'],delivered:['Delivered','green'],verified:['Verified','green'],suspended:['Suspended','red'],active:['Active','green'],resolved:['Resolved','green'],kycpending:['KYC pending','amber'],kycrejected:['KYC rejected','red']};
+function pill(s){const p=PILL[s]||[s,'grey'];return`<span class="pill p-${p[1]}">${esc(p[0])}</span>`}
+const stars=n=>'★★★★★'.slice(0,Math.round(n))+'☆☆☆☆☆'.slice(0,5-Math.round(n));
+const rating=id=>{const c=comp(id);return c&&c.reviews?`<span class="stars">★</span> ${Number(c.rating).toFixed(1)} <span class="muted">(${c.reviews})</span>`:'<span class="muted">New supplier</span>'};
+function catalog(){return all('products').filter(p=>verified(p.supplierId)&&p.stock>0).sort(byNew)}
+function matches(p,f){if(f.section&&p.section!==f.section)return false;if(f.colour&&!p.colours.includes(f.colour))return false;if(f.quality&&p.quality!==f.quality)return false;if(f.q){const q=f.q.toLowerCase().trim();if(q&&!(p.name+' '+secName(p.section)+' '+cname(p.supplierId)+' '+p.colours.join(' ')+' '+p.composition).toLowerCase().includes(q))return false}return true}
+function notify(to,text,link){put('notifs',{id:uid('n'),to,text,link:link||null,ts:Date.now(),read:false})}
+
+/* ---------- UI state ---------- */
+const U={role:null,actor:null,tab:'home',sheet:null,cfg:null,filter:{q:'',section:null,colour:null,quality:null},oseg:'active',cseg:'pending',mseg:'rfqs',dseg:'open',confirm:null,fresh:false};
+const FORGET=new Set();
+let rq=0;
+function render(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;doRender()})}
+function swap(el,key,html){
+  const keep=el.dataset.key===key;let vals={},focus=null,sel=null,scroll={};
+  if(keep){
+    el.querySelectorAll('input[id],textarea[id],select[id]').forEach(i=>{if(!FORGET.has(i.id)&&i.type!=='range')vals[i.id]=i.value});
+    const a=document.activeElement;if(a&&a.id&&el.contains(a)){focus=a.id;try{sel=[a.selectionStart,a.selectionEnd]}catch(e){}}
+    el.querySelectorAll('[data-scroll]').forEach(s=>scroll[s.dataset.scroll]=s.scrollTop);
+  }
+  el.innerHTML=html;el.dataset.key=key;
+  if(keep){
+    for(const id in vals){const i=el.querySelector('#'+CSS.escape(id));if(i)i.value=vals[id]}
+    for(const k in scroll){const s=el.querySelector(`[data-scroll="${k}"]`);if(s)s.scrollTop=scroll[k]}
+    if(focus){const f=el.querySelector('#'+CSS.escape(focus));if(f){f.focus({preventScroll:true});try{if(sel&&sel[0]!=null)f.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+  }
+}
+function doRender(){
+  const app=$('#app');
+  const key=MODE==='loading'?'load':!U.role?'login':`${U.role}|${U.actor}|${U.tab}|${U.oseg}|${U.cseg}|${U.mseg}|${U.dseg}`;
+  swap(app,key,MODE==='loading'?`<div class="splash"><div class="brand">FABRI<span>LINK</span></div></div>`:!U.role?vLogin():vShell());
+  const sh=$('#sheet');
+  if(U.sheet){
+    const s=U.sheet;const k=s.type+'|'+(s.id||'')+'|'+(s.type==='cfg'?U.cfg.mode+U.cfg.step:'');
+    const wide=s.type==='cfg'||s.type==='rfq';
+    swap(sh,k,`<div class="backdrop" data-act="close"></div><div class="panel ${wide?'wide':''} ${U.fresh?'enter':''} role-${U.role||'buyer'}" role="dialog" aria-modal="true">${renderSheet()}</div>`);
+    if(U.fresh){U.fresh=false}else{const p=sh.querySelector('.panel');p&&p.classList.remove('enter')}
+    sh.classList.add('on');document.body.classList.add('lock');
+    const ch=sh.querySelector('.chat');if(ch&&U.chatBottom){ch.scrollTop=ch.scrollHeight;U.chatBottom=false}
+  }else{sh.classList.remove('on');sh.innerHTML='';sh.dataset.key='';document.body.classList.remove('lock')}
+  FORGET.clear();
+}
+function openSheet(s){U.fresh=!U.sheet;U.sheet=s;U.confirm=null;render()}
+function closeSheet(){U.sheet=null;U.cfg=null;render()}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2800)}
+const head=(t,sub)=>`<div class="sheet-head"><div><h2>${t}</h2>${sub?`<p>${sub}</p>`:''}</div><button class="iconbtn" data-act="close" aria-label="Close">${ic('x',18)}</button></div>`;
+const empty=(t,s='',extra='')=>`<div class="empty"><b>${t}</b>${s}${extra?`<div>${extra}</div>`:''}</div>`;
+const spec=(k,v)=>`<div class="spec"><small>${k}</small><b>${v}</b></div>`;
+const line=(k,v,c='')=>`<div class="line ${c}"><span>${k}</span><span>${v}</span></div>`;
+const stat=(k,v,tab)=>`<div class="stat ${tab?'click':''}" ${tab?`data-act="tab" data-tab="${tab}"`:''}><small>${k}</small><b>${v}</b></div>`;
+const seg=(name,cur,opts)=>`<div class="seg" role="tablist">${opts.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="seg" data-name="${name}" data-k="${k}">${l}</button>`).join('')}</div>`;
+const pagehead=(t,s,extra='')=>`<div class="pagehead"><div><h1>${t}</h1>${s?`<p>${s}</p>`:''}</div>${extra}</div>`;
+
+/* ---------- login ---------- */
+function vLogin(){
+  const portal=(r,t,d,i,col)=>`<button class="portal" data-act="portal" data-role="${r}"><span class="pi" style="background:${col}">${ic(i,24)}</span><h3>${t}</h3><p>${d}</p><span class="go">Enter ${t.toLowerCase()} portal ${ic('chev',16)}</span></button>`;
+  return`<div class="login"><div class="login-hero"><div class="brand">FABRI<span>LINK</span></div><p>B2B fabric sourcing &amp; trading for Bangladesh's textile and garment industry.</p></div>
+  <div class="login-body"><h2>Choose your portal</h2><div class="portals">
+  ${portal('buyer','Buyer','Find fabric by section, colour and quality, post RFQs, compare bids and track orders.','box','#0B8F87')}
+  ${portal('supplier','Supplier','List your fabrics, bid on RFQs, dispatch samples and update production milestones.','grid','#1F6FB2')}
+  ${portal('admin','Admin','Verify businesses, monitor RFQs and orders, resolve disputes and manage catalog options.','shield','#183044')}
+  </div></div></div>`;
+}
+function sPick(){
+  const type=U.sheet.role;const list=all('companies').filter(c=>c.type===type).sort((a,b)=>a.name.localeCompare(b.name));
+  return head(type==='buyer'?'Sign in as a buyer':'Sign in as a supplier','Pick a company account, or register a new business.')+`<div class="sheet-body" data-scroll="sb"><div class="pick">
+  ${list.map(c=>`<button class="row" data-act="login" data-id="${c.id}" ${c.status==='suspended'?'disabled':''}><span class="avatar">${esc(c.name[0])}</span><span class="row-main"><b>${esc(c.name)} ${vbadge(c.id)}</b><small>${esc(c.city)}${type==='supplier'&&c.reviews?' · ★ '+Number(c.rating).toFixed(1):''}</small></span><span class="row-side">${c.status==='suspended'?pill('suspended'):c.kyc==='verified'?pill('verified'):pill('kyc'+c.kyc)}</span></button>`).join('')||empty('No accounts yet')}
+  </div><h3 class="h3">Register a new ${type}</h3><div class="form">
+  <label class="full">Company name<input id="r_name" placeholder="e.g. Meghna Fabrics Ltd"></label>
+  <label>City / district<input id="r_city" placeholder="e.g. Gazipur"></label>
+  <label>Trade license no.<input id="r_lic" placeholder="TRAD/…"></label>
+  <label class="full">BIN (VAT registration)<input id="r_bin" placeholder="000000000-0000"></label>
+  </div><p class="muted" style="font-size:13.5px;margin-top:8px">New accounts are reviewed by FabriLink admin (KYC) before they can ${type==='buyer'?'order or post RFQs':'bid or appear in the catalog'}.</p></div>
+  <div class="sheet-foot"><button class="btn ghost" data-act="close">Cancel</button><button class="btn pri" data-act="register">Register &amp; continue</button></div>`;
+}
+
+/* ---------- shell ---------- */
+const TABS={
+  buyer:[['home','Home','home'],['catalog','Catalog','grid'],['rfqs','RFQs','file'],['orders','Orders','box'],['samples','Samples','swatch']],
+  supplier:[['home','Dashboard','chart'],['products','Products','grid'],['rfqs','RFQ Inbox','file'],['orders','Orders','box'],['samples','Samples','swatch']],
+  admin:[['home','Dashboard','chart'],['companies','Companies','shield'],['market','Market','file'],['disputes','Disputes','alert'],['settings','Settings','settings']]
+};
+function myNotifs(){return all('notifs').filter(n=>n.to===U.actor).sort(byNew)}
+function vShell(){
+  const tabs=TABS[U.role];const unread=myNotifs().filter(n=>!n.read).length;
+  const who=U.role==='admin'?{name:'FabriLink Admin',sub:'Platform operations'}:{name:me()?.name||'',sub:(me()?.city||'')+' · '+U.role};
+  const live=MODE==='db'?`<span class="livechip"><i></i>Live</span>`:`<span class="livechip demo"><i></i>Demo</span>`;
+  return`<div class="shell role-${U.role}">
+  <aside class="side"><div class="brand">FABRI<span>LINK</span></div><span class="rolechip">${U.role} portal</span>
+  <nav>${tabs.map(([k,l,i])=>`<button class="${U.tab===k?'on':''}" data-act="tab" data-tab="${k}">${ic(i)}${l}</button>`).join('')}</nav>
+  <button class="who" data-act="account"><span class="avatar">${esc(who.name[0]||'?')}</span><span><b>${esc(who.name)}</b><small>${esc(who.sub)}</small></span></button></aside>
+  <div class="mainwrap"><header class="top"><div class="brand">FABRI<span>LINK</span></div><span class="rolechip">${U.role}</span><span class="spacer"></span>${live}
+  <button class="iconbtn" data-act="notifs" aria-label="Notifications">${ic('bell')}${unread?`<span class="badge-n">${unread>9?'9+':unread}</span>`:''}</button>
+  <button class="avatar" data-act="account" aria-label="Account">${esc(who.name[0]||'?')}</button></header>
+  <main class="content">${view()}</main></div>
+  <nav class="tabbar">${tabs.map(([k,l,i])=>`<button class="${U.tab===k?'on':''}" data-act="tab" data-tab="${k}">${ic(i,22)}<span>${l}</span></button>`).join('')}</nav></div>`;
+}
+function view(){
+  const r=U.role,t=U.tab;
+  if(r==='buyer')return({home:vBuyerHome,catalog:vCatalog,rfqs:vBuyerRfqs,orders:vOrders,samples:vSamples}[t]||vBuyerHome)();
+  if(r==='supplier')return({home:vSupHome,products:vSupProducts,rfqs:vSupRfqs,orders:vOrders,samples:vSamples}[t]||vSupHome)();
+  return({home:vAdminHome,companies:vCompanies,market:vMarket,disputes:vDisputes,settings:vSettings}[t]||vAdminHome)();
+}
+function kycBanner(){
+  const c=me();if(!c)return'';
+  if(c.status==='suspended')return`<div class="banner bad">${ic('alert')}<div><b>Account suspended</b>Contact FabriLink support to restore access.</div></div>`;
+  if(c.kyc==='pending')return`<div class="banner warn">${ic('shield')}<div><b>Verification in progress</b>FabriLink is reviewing your trade license and BIN. ${U.role==='buyer'?'You can browse now; ordering and RFQs unlock after approval.':'Your products go live and bidding unlocks after approval.'}</div></div>`;
+  if(c.kyc==='rejected')return`<div class="banner bad">${ic('alert')}<div><b>Verification rejected</b>Please contact FabriLink support with updated documents.</div></div>`;
+  return'';
+}
+function needVerified(){if(verified(U.actor))return true;toast(me()?.status==='suspended'?'Your account is suspended.':'Your business must be verified by FabriLink first.');return false}
+
+/* ---------- product card / rows ---------- */
+function pCard(p){
+  return`<button class="pcard" data-act="openProduct" data-id="${p.id}"><span class="stripe" style="${stripe(p.colours)}"></span><span class="pc-body">
+  <span class="pc-top"><span class="tag">${esc(secName(p.section))}</span><span class="grade g${esc(p.quality)}">${esc(qual(p.quality)?.name||p.quality)}</span></span>
+  <b class="pc-name">${esc(p.name)}</b><span class="pc-sup">${esc(cname(p.supplierId))} ${vbadge(p.supplierId)}</span>
+  <span class="pc-meta">${p.gsm} GSM · ${p.width}" · MOQ ${num(p.moq)} m</span>
+  <span class="pc-foot"><span class="price">${money(p.price)}<small> /m</small></span><span class="sws">${p.colours.slice(0,5).map(c=>`<i style="background:${hex(c)}" title="${esc(c)}"></i>`).join('')}${p.colours.length>5?`<em>+${p.colours.length-5}</em>`:''}</span></span></span></button>`;
+}
+function rfqRow(r){
+  const bids=bidsFor(r.id);const low=bids.length?Math.min(...bids.map(b=>b.price)):null;
+  let side=`${pill(r.status)}<small>${bids.length} bid${bids.length===1?'':'s'}${low?' · from '+money(low):''}</small>`;
+  if(U.role==='supplier'){const mb=bids.find(b=>b.supplierId===U.actor);const mine=new Set(all('products').filter(p=>p.supplierId===U.actor).map(p=>p.section));
+    side=mb?`${pill(mb.status)}<small>Your bid ${money(mb.price)}/m</small>`:(mine.has(r.section)?`<span class="pill p-teal">Matches your catalog</span><small>Closes ${fdate(r.deadline)}</small>`:`<small>Closes ${fdate(r.deadline)}</small>`)}
+  return`<button class="row" data-act="openRfq" data-id="${r.id}"><span class="row-art" style="${secArt(r.section)}"><i style="background:${hex(r.colour)}"></i></span><span class="row-main"><b>${esc(secName(r.section))} · ${esc(r.colour)}</b><small>${esc(qualName(r.quality))} · ${r.gsm} GSM · ${num(r.qty)} m</small><small>${ref(r.id)} · ${esc(cname(r.buyerId))} · ${ago(r.created)}</small></span><span class="row-side">${side}</span></button>`;
+}
+function oRow(o){
+  const i=stepIdx(o.status);const pct=Math.round(i/(STEPS.length-1)*100);
+  const who=U.role==='supplier'?cname(o.buyerId):U.role==='buyer'?cname(o.supplierId):cname(o.buyerId)+' → '+cname(o.supplierId);
+  return`<button class="row" data-act="openOrder" data-id="${o.id}"><span class="row-art" style="${stripe([o.colour])}"></span><span class="row-main"><b>${esc(o.title)}</b><small>${ref(o.id)} · ${esc(who)}</small><small>${esc(o.colour)} · ${num(o.qty)} m</small><span class="prog"><i style="width:${pct}%"></i></span></span><span class="row-side"><b>${money(o.total)}</b>${pill(o.status)}</span></button>`;
+}
+
+/* ---------- buyer ---------- */
+function vBuyerHome(){
+  const c=me();const myR=all('rfqs').filter(r=>r.buyerId===U.actor);const openR=myR.filter(r=>r.status==='open');
+  const bidsN=all('bids').filter(b=>openR.some(r=>r.id===b.rfqId)&&b.status==='pending').length;
+  const active=all('orders').filter(o=>o.buyerId===U.actor&&o.status!=='delivered').sort(byNew);
+  const smp=all('samples').filter(s=>s.buyerId===U.actor&&['requested','dispatched'].includes(s.status)).length;
+  const cat=catalog();
+  return`${kycBanner()}<div class="hello"><div><div class="eyebrow">Buyer portal</div><h1>${greet()}, ${esc(c.name)}</h1><p>Find verified fabric, compare bids and track every order.</p></div>
+  <div class="hello-cta"><button class="btn pri lg" data-act="cfgOpen" data-mode="find">${ic('search')} Find fabric</button><button class="btn sec lg" data-act="cfgOpen" data-mode="rfq">${ic('plus')} Post RFQ</button></div></div>
+  <div class="stats">${stat('Open RFQs',openR.length,'rfqs')}${stat('New bids',bidsN,'rfqs')}${stat('Active orders',active.length,'orders')}${stat('Samples in transit',smp,'samples')}</div>
+  <h2 class="h">Browse by section</h2><div class="hscroll">${O().sections.map(s=>`<button class="sectile" data-act="browse" data-id="${s.id}"><span class="art" style="${secArt(s.id)}"></span><span>${esc(s.name)}</span><small>${cat.filter(p=>p.section===s.id).length} fabrics</small></button>`).join('')}</div>
+  <h2 class="h">Latest fabrics <button class="link" data-act="tab" data-tab="catalog">See all</button></h2>
+  <div class="cards">${cat.slice(0,4).map(pCard).join('')||empty('No fabrics listed yet')}</div>
+  ${active.length?`<h2 class="h">Active orders <button class="link" data-act="tab" data-tab="orders">See all</button></h2><div class="list">${active.slice(0,3).map(oRow).join('')}</div>`:''}`;
+}
+function vCatalog(){
+  const f=U.filter;const list=catalog().filter(p=>matches(p,f));
+  const chip=(html,key)=>`<span class="chip">${html}<button data-act="unfilter" data-key="${key}" aria-label="Remove filter">${ic('x',14)}</button></span>`;
+  const chips=[f.section&&chip(esc(secName(f.section)),'section'),f.colour&&chip(`<span class="dot" style="background:${hex(f.colour)}"></span>${esc(f.colour)}`,'colour'),f.quality&&chip(esc(qualName(f.quality)),'quality')].filter(Boolean).join('');
+  return`${pagehead('Fabric catalog',`${list.length} fabric${list.length===1?'':'s'} from verified mills`)}
+  <div class="toolbar"><label class="search">${ic('search',18)}<input id="q" type="search" placeholder="Search fabric, mill or colour" value="${esc(f.q)}" data-input="q" autocomplete="off"></label><button class="btn pri" data-act="cfgOpen" data-mode="find">${ic('settings',18)}<span>Configure</span></button></div>
+  ${chips?`<div class="chips">${chips}<button class="link" data-act="clearFilter">Clear all</button></div>`:''}
+  <div class="cards">${list.map(pCard).join('')||empty('No fabrics match this configuration','Try another colour or quality — or post an RFQ so mills can bid on your exact specs.',`<button class="btn pri" data-act="rfqFromFilter">Post RFQ with these specs</button>`)}</div>`;
+}
+function vBuyerRfqs(){
+  const my=all('rfqs').filter(r=>r.buyerId===U.actor).sort(byNew);
+  return pagehead('My RFQs','Requests for quotation sent to verified mills',`<button class="btn pri" data-act="cfgOpen" data-mode="rfq">${ic('plus',18)} New RFQ</button>`)+(my.length?`<div class="list">${my.map(rfqRow).join('')}</div>`:empty('No RFQs yet','Post an RFQ and verified mills will send you bids.'));
+}
+function vOrders(){
+  const mine=all('orders').filter(o=>U.role==='buyer'?o.buyerId===U.actor:o.supplierId===U.actor).sort(byNew);
+  const list=mine.filter(o=>U.oseg==='active'?o.status!=='delivered':o.status==='delivered');
+  return pagehead('Orders',`${mine.length} order${mine.length===1?'':'s'} in total`)+seg('oseg',U.oseg,[['active',`Active (${mine.filter(o=>o.status!=='delivered').length})`],['done','Completed']])+(list.length?`<div class="list">${list.map(oRow).join('')}</div>`:empty(U.oseg==='active'?'No active orders':'No completed orders yet',U.role==='buyer'?'Order from the catalog or accept a bid on one of your RFQs.':'Orders appear here when buyers order your fabric or accept your bids.'));
+}
+function vSamples(){
+  const isB=U.role==='buyer';const mine=all('samples').filter(s=>isB?s.buyerId===U.actor:s.supplierId===U.actor).sort(byNew);
+  return pagehead('Samples',isB?'Swatches you requested from mills':'Swatch requests from buyers')+(mine.length?`<div class="list">${mine.map(s=>{
+    let act='';
+    if(!isB&&s.status==='requested')act=`<button class="btn pri sm" data-act="shipSample" data-id="${s.id}">${ic('truck',16)} Dispatch</button>`;
+    if(isB&&s.status==='dispatched')act=`<button class="btn ok sm" data-act="sampleVerdict" data-id="${s.id}" data-v="approved">${ic('check',16)} Approve</button><button class="btn ghost sm" data-act="sampleVerdict" data-id="${s.id}" data-v="declined">Decline</button>`;
+    if(isB&&s.status==='approved'&&get('products',s.productId))act=`<button class="btn sec sm" data-act="openProduct" data-id="${s.productId}" data-colour="${esc(s.colour)}">Order this fabric</button>`;
+    return`<div class="row"><span class="row-art" style="${stripe([s.colour])}"></span><span class="row-main"><b>${esc(s.title)}</b><small>${esc(s.colour)} · ${esc(cname(isB?s.supplierId:s.buyerId))} · ${ago(s.created)}</small>${s.tracking?`<small>${ic('truck',13)} ${esc(s.tracking)}</small>`:''}${act?`<span class="row-actions">${act}</span>`:''}</span><span class="row-side">${pill(s.status)}</span></div>`}).join('')}</div>`:empty('No samples yet',isB?'Open any fabric in the catalog and tap “Request sample”.':'Sample requests from buyers will show here.'));
+}
+
+/* ---------- supplier ---------- */
+function vSupHome(){
+  const c=me();const prods=all('products').filter(p=>p.supplierId===U.actor);const secs=new Set(prods.map(p=>p.section));
+  const open=all('rfqs').filter(r=>r.status==='open'&&secs.has(r.section)&&!bidsFor(r.id).some(b=>b.supplierId===U.actor)).sort(byNew);
+  const ords=all('orders').filter(o=>o.supplierId===U.actor);const act=ords.filter(o=>['paid','production','qc'].includes(o.status)).sort(byNew);
+  const rev=sum(ords.filter(o=>o.status==='delivered').map(o=>o.total));
+  const smp=all('samples').filter(s=>s.supplierId===U.actor&&s.status==='requested');
+  return`${kycBanner()}<div class="hello"><div><div class="eyebrow">Supplier portal</div><h1>${greet()}, ${esc(c.name)}</h1><p>${rating(U.actor)} · ${esc(c.city)}</p></div>
+  <div class="hello-cta"><button class="btn pri lg" data-act="cfgOpen" data-mode="product">${ic('plus')} Add product</button><button class="btn sec lg" data-act="tab" data-tab="rfqs">${ic('file')} RFQ inbox</button></div></div>
+  <div class="stats">${stat('Listed products',prods.length,'products')}${stat('RFQs for you',open.length,'rfqs')}${stat('Orders to fulfil',act.length,'orders')}${stat('Revenue (delivered)',money(rev),'orders')}</div>
+  ${act.length||smp.length?`<h2 class="h">Needs your action</h2><div class="list">${act.map(oRow).join('')}${smp.map(s=>`<button class="row" data-act="tab" data-tab="samples"><span class="row-art" style="${stripe([s.colour])}"></span><span class="row-main"><b>Sample request · ${esc(s.title)}</b><small>${esc(s.colour)} · ${esc(cname(s.buyerId))} · ${ago(s.created)}</small></span><span class="row-side">${pill('requested')}</span></button>`).join('')}</div>`:''}
+  <h2 class="h">New RFQs matching your catalog <button class="link" data-act="tab" data-tab="rfqs">See all</button></h2>
+  ${open.length?`<div class="list">${open.slice(0,4).map(rfqRow).join('')}</div>`:empty('No new matching RFQs','Add products in more sections to see more requests.')}`;
+}
+function vSupProducts(){
+  const prods=all('products').filter(p=>p.supplierId===U.actor).sort(byNew);
+  return`${kycBanner()}${pagehead('My products',`${prods.length} listing${prods.length===1?'':'s'}`,`<button class="btn pri" data-act="cfgOpen" data-mode="product">${ic('plus',18)} Add product</button>`)}
+  <div class="cards">${prods.map(p=>`<div class="pcard"><span class="stripe" style="${stripe(p.colours)}"></span><span class="pc-body"><span class="pc-top"><span class="tag">${esc(secName(p.section))}</span><span class="grade g${esc(p.quality)}">${esc(qual(p.quality)?.name||p.quality)}</span></span><b class="pc-name">${esc(p.name)}</b><span class="pc-meta">${p.gsm} GSM · ${p.width}" · ${esc(p.composition)}</span><span class="pc-meta">MOQ ${num(p.moq)} m · <b style="color:${p.stock>0?'var(--ink)':'var(--red)'}">${num(p.stock)} m in stock</b></span><span class="pc-foot"><span class="price">${money(p.price)}<small> /m</small></span><span class="sws">${p.colours.slice(0,6).map(c=>`<i style="background:${hex(c)}" title="${esc(c)}"></i>`).join('')}</span></span></span>
+  <div class="pc-actions"><button class="btn sec sm" style="flex:1" data-act="editProduct" data-id="${p.id}">Edit</button><button class="btn ${U.confirm===p.id?'danger':'ghost'} sm" data-act="removeProduct" data-id="${p.id}">${U.confirm===p.id?'Tap again to remove':'Remove'}</button></div></div>`).join('')||empty('No products yet','Add your first fabric — choose its section, colours and quality.',`<button class="btn pri" data-act="cfgOpen" data-mode="product">${ic('plus',18)} Add product</button>`)}</div>`;
+}
+function vSupRfqs(){
+  const open=all('rfqs').filter(r=>r.status==='open').sort(byNew);
+  const mine=all('bids').filter(b=>b.supplierId===U.actor).map(b=>get('rfqs',b.rfqId)).filter(r=>r&&r.status!=='open').sort(byNew);
+  return`${kycBanner()}${pagehead('RFQ inbox','Open requests from verified buyers — tap one to bid')}
+  ${open.length?`<div class="list">${open.map(rfqRow).join('')}</div>`:empty('No open RFQs right now')}
+  ${mine.length?`<h2 class="h">Closed RFQs you bid on</h2><div class="list">${mine.map(rfqRow).join('')}</div>`:''}`;
+}
+
+/* ---------- admin ---------- */
+function vAdminHome(){
+  const ords=all('orders');const gmv=sum(ords.map(o=>o.total));const delivered=sum(ords.filter(o=>o.status==='delivered').map(o=>o.total));
+  const comps=all('companies');const pend=comps.filter(c=>c.kyc==='pending').length;
+  const bySec={};ords.forEach(o=>bySec[o.section]=(bySec[o.section]||0)+o.total);const secs=Object.entries(bySec).sort((a,b)=>b[1]-a[1]);const max=secs[0]?.[1]||1;
+  const pipe=STEPS.map(([k,l])=>[l,ords.filter(o=>o.status===k).length]);
+  const feed=all('notifs').filter(n=>n.to==='admin').sort(byNew).slice(0,8);
+  return`${pagehead('Platform dashboard','Live view of the FabriLink marketplace')}
+  <div class="kpis"><div class="kpi dark"><small>Gross merchandise value</small><b>${money(gmv)}</b><em>${ords.length} orders</em></div>
+  <div class="kpi"><small>Commission earned (${O().commission}%)</small><b>${money(delivered*O().commission/100)}</b><em>on delivered orders</em></div>
+  <div class="kpi stat click" data-act="tab" data-tab="companies"><small>KYC pending</small><b style="color:${pend?'var(--amber)':'inherit'}">${pend}</b><em>${comps.filter(c=>c.kyc==='verified').length} verified companies</em></div>
+  <div class="kpi"><small>Open RFQs</small><b>${all('rfqs').filter(r=>r.status==='open').length}</b><em>${all('bids').filter(b=>b.status==='pending').length} pending bids</em></div>
+  <div class="kpi"><small>Active orders</small><b>${ords.filter(o=>o.status!=='delivered').length}</b><em>${money(sum(ords.filter(o=>o.payState==='held').map(o=>o.total)))} in escrow</em></div>
+  <div class="kpi stat click" data-act="tab" data-tab="disputes"><small>Open disputes</small><b style="color:${all('disputes').some(d=>d.status==='open')?'var(--red)':'inherit'}">${all('disputes').filter(d=>d.status==='open').length}</b><em>${all('products').length} listed products</em></div></div>
+  <div class="grid2"><div class="card"><h3 class="h3" style="margin-top:0">Order value by section</h3><div class="bars">${secs.map(([s,v])=>`<div class="bar"><span>${esc(secName(s))}</span><span class="track"><i style="width:${Math.max(4,v/max*100)}%"></i></span><span>${money(v)}</span></div>`).join('')||'<p class="muted">No orders yet.</p>'}</div>
+  <h3 class="h3">Order pipeline</h3><div class="bars">${pipe.map(([l,n])=>`<div class="bar"><span>${l.replace(' held in escrow','')}</span><span class="track"><i style="width:${ords.length?Math.max(n?6:0,n/ords.length*100):0}%;background:#2B4A63"></i></span><span>${n}</span></div>`).join('')}</div></div>
+  <div class="card"><h3 class="h3" style="margin-top:0">Recent activity</h3><div class="feed">${feed.map(n=>`<div>${esc(n.text)}<small>${ago(n.ts)}</small></div>`).join('')||'<p class="muted">Nothing yet.</p>'}</div></div></div>`;
+}
+function vCompanies(){
+  const comps=all('companies');const s=U.cseg;
+  const list=comps.filter(c=>s==='pending'?c.kyc==='pending':c.type===s).sort(byNew);
+  return pagehead('Companies','Verify businesses (KYC) and manage accounts')+seg('cseg',s,[['pending',`KYC queue (${comps.filter(c=>c.kyc==='pending').length})`],['buyer','Buyers'],['supplier','Suppliers']])+
+  (list.length?`<div class="colist">${list.map(c=>{
+    const prods=all('products').filter(p=>p.supplierId===c.id).length;const ords=all('orders').filter(o=>o.buyerId===c.id||o.supplierId===c.id).length;
+    let acts='';
+    if(c.kyc==='pending')acts=`<button class="btn ok sm" data-act="kyc" data-id="${c.id}" data-v="verified">${ic('check',16)} Approve</button><button class="btn danger sm" data-act="kyc" data-id="${c.id}" data-v="rejected">Reject</button>`;
+    else if(c.kyc==='rejected')acts=`<button class="btn sec sm" data-act="kyc" data-id="${c.id}" data-v="pending">Re-open review</button>`;
+    else acts=c.status==='suspended'?`<button class="btn ok sm" data-act="suspend" data-id="${c.id}" data-v="active">Reactivate</button>`:`<button class="btn ${U.confirm===c.id?'danger':'ghost'} sm" data-act="suspend" data-id="${c.id}" data-v="suspended">${U.confirm===c.id?'Tap again to suspend':'Suspend'}</button>`;
+    return`<div class="co"><span class="avatar" style="background:${c.type==='buyer'?'#0B8F87':'#1F6FB2'}">${esc(c.name[0])}</span><div><h3>${esc(c.name)} ${vbadge(c.id)}</h3><div class="meta">${c.type==='buyer'?'Buyer':'Supplier'} · ${esc(c.city)} · joined ${ago(c.created)}</div>
+    <div class="kv"><span>Trade license <b>${esc(c.license||'—')}</b></span><span>BIN <b>${esc(c.bin||'—')}</b></span>${c.type==='supplier'?`<span>Products <b>${prods}</b></span><span>Rating <b>${c.reviews?Number(c.rating).toFixed(1)+' ★':'—'}</b></span>`:''}<span>Orders <b>${ords}</b></span></div>
+    <div class="row-actions">${c.status==='suspended'?pill('suspended'):pill(c.kyc==='verified'?'verified':'kyc'+c.kyc)} ${acts}</div></div></div>`}).join('')}</div>`:empty(s==='pending'?'KYC queue is clear':'No companies','New registrations will appear here for review.'));
+}
+function vMarket(){
+  const s=U.mseg;let body='';
+  if(s==='rfqs'){const l=all('rfqs').sort(byNew);body=l.length?`<div class="list">${l.map(rfqRow).join('')}</div>`:empty('No RFQs yet')}
+  if(s==='bids'){const l=all('bids').sort(byNew);body=l.length?`<div class="list">${l.map(b=>{const r=get('rfqs',b.rfqId);return`<button class="row" data-act="openRfq" data-id="${b.rfqId}"><span class="row-art" style="${r?secArt(r.section):''}"><i style="background:${hex(r?.colour)}"></i></span><span class="row-main"><b>${esc(cname(b.supplierId))} → RFQ ${ref(b.rfqId)}</b><small>${money(b.price)}/m · ${b.lead} days lead · ${ago(b.created)}</small></span><span class="row-side">${pill(b.status)}</span></button>`}).join('')}</div>`:empty('No bids yet')}
+  if(s==='orders'){const l=all('orders').sort(byNew);body=l.length?`<div class="list">${l.map(oRow).join('')}</div>`:empty('No orders yet')}
+  return pagehead('Market monitor','Every RFQ, bid and order on the platform')+seg('mseg',s,[['rfqs','RFQs'],['bids','Bids'],['orders','Orders']])+body;
+}
+function vDisputes(){
+  const l=all('disputes').filter(d=>U.dseg==='open'?d.status==='open':d.status!=='open').sort(byNew);
+  return pagehead('Disputes','Resolve issues between buyers and suppliers')+seg('dseg',U.dseg,[['open',`Open (${all('disputes').filter(d=>d.status==='open').length})`],['resolved','Resolved']])+
+  (l.length?`<div class="list">${l.map(d=>{const o=get('orders',d.orderId);return`<div class="row" style="align-items:flex-start"><span class="row-art" style="background:var(--red-s);color:var(--red);place-items:center">${ic('alert')}</span><span class="row-main"><b>${esc(d.reason)} · order ${ref(d.orderId)}</b><small>Raised by ${esc(cname(d.raisedBy))} against ${esc(cname(d.against))} · ${ago(d.created)}</small>${o?`<small>${esc(o.title)} · ${money(o.total)} · ${PILL[o.status]?.[0]||o.status} · payment ${o.payState}</small>`:''}<span style="margin-top:6px">${esc(d.details)}</span>${d.resolution?`<small style="margin-top:4px"><b>Resolution:</b> ${esc(d.resolution)}</small>`:''}
+  <span class="row-actions">${o?`<button class="btn ghost sm" data-act="openOrder" data-id="${o.id}">View order</button>`:''}${d.status==='open'?`<button class="btn ok sm" data-act="resolve" data-id="${d.id}" data-v="release">Release payment to supplier</button><button class="btn danger sm" data-act="resolve" data-id="${d.id}" data-v="refund">Refund buyer</button><button class="btn sec sm" data-act="resolve" data-id="${d.id}" data-v="settled">Mark settled</button>`:''}</span></span><span class="row-side">${pill(d.status)}</span></div>`}).join('')}</div>`:empty(U.dseg==='open'?'No open disputes':'No resolved disputes yet'));
+}
+function vSettings(){
+  const o=O();const used=id=>all('products').filter(p=>p.section===id).length;
+  return pagehead('Settings','Options buyers and suppliers see in the product configurator')+`<div class="settings">
+  <div class="card"><h3>Product sections</h3><p>Fabric categories shown in step 1 of the configurator.</p><div class="optlist">${o.sections.map(s=>`<span class="opt"><span class="dot" style="${secArt(s.id)};border-radius:4px"></span>${esc(s.name)} <small class="muted">${used(s.id)}</small><button data-act="rmSection" data-id="${s.id}" aria-label="Remove ${esc(s.name)}">${ic('x',14)}</button></span>`).join('')}</div>
+  <div class="inline"><input id="newSec" class="inp" placeholder="New section, e.g. Corduroy"><button class="btn pri" data-act="addSection">${ic('plus',18)} Add</button></div></div>
+  <div class="card"><h3>Colours</h3><p>Colour swatches shown in step 2.</p><div class="optlist">${o.colours.map(c=>`<span class="opt"><span class="dot" style="background:${c.hex}"></span>${esc(c.name)}<button data-act="rmColour" data-c="${esc(c.name)}" aria-label="Remove ${esc(c.name)}">${ic('x',14)}</button></span>`).join('')}</div>
+  <div class="inline"><input id="newColHex" type="color" value="#7a5c99" class="inp"><input id="newColName" class="inp" placeholder="Colour name, e.g. Lavender"><button class="btn pri" data-act="addColour">${ic('plus',18)} Add</button></div></div>
+  <div class="card"><h3>Quality grades</h3><p>Grades shown in step 3, with their specification.</p><div class="list" style="margin-bottom:12px">${o.qualities.map(q=>`<div class="row"><span class="grade g${esc(q.id)}">${esc(q.grade)}</span><span class="row-main"><b>${esc(q.name)}</b><small>${esc(q.desc)}</small></span><button class="iconbtn" data-act="rmQuality" data-id="${esc(q.id)}" aria-label="Remove">${ic('x',16)}</button></div>`).join('')}</div>
+  <div class="form"><label>Name<input id="nq_name" placeholder="e.g. Export"></label><label>Grade label<input id="nq_grade" placeholder="e.g. Grade A+"></label><label class="full">Specification<input id="nq_desc" placeholder="e.g. Compact yarn · AQL 1.0"></label></div><button class="btn pri" style="margin-top:10px" data-act="addQuality">${ic('plus',18)} Add grade</button></div>
+  <div class="card"><h3>Commission</h3><p>FabriLink's service fee on delivered orders, paid by the supplier.</p><div class="inline" style="max-width:320px"><input id="comm" class="inp" type="number" min="0" max="20" step="0.1" value="${o.commission}"><span>%</span><button class="btn pri" data-act="saveComm">Save</button></div></div>
+  <div class="card"><h3>Data</h3><p>${MODE==='db'?'Live workspace: everything is saved to this site\'s shared database and syncs across devices.':'Demo mode: data is saved '+WHERE+' only.'}</p>${MODE==='local'?`<button class="btn ${U.confirm==='reset'?'danger':'ghost'}" data-act="resetDemo">${U.confirm==='reset'?'Tap again to reset all demo data':'Reset demo data'}</button>`:''}</div></div>`;
+}
+
+/* ---------- sheets ---------- */
+function renderSheet(){
+  const t=U.sheet.type;
+  const f={pick:sPick,cfg:sCfg,product:sProduct,checkout:sCheckout,rfq:sRfq,order:sOrder,notifs:sNotifs,account:sAccount,shipSample:sShipSample,dispute:sDispute}[t];
+  return f?f():head('Not found');
+}
+const gone=()=>head('No longer available','This item was removed.')+`<div class="sheet-foot"><button class="btn ghost" data-act="close">Close</button></div>`;
+function sProduct(){
+  const p=get('products',U.sheet.id);if(!p)return gone();
+  if(!p.colours.includes(U.sheet.colour))U.sheet.colour=p.colours[0];
+  const sel=U.sheet.colour;const q=U.sheet.qty??p.moq;const buyer=U.role==='buyer';
+  return head(esc(p.name),`${esc(cname(p.supplierId))} ${vbadge(p.supplierId)} · ${esc(comp(p.supplierId)?.city||'')} · ${rating(p.supplierId)}`)+`<div class="sheet-body" data-scroll="sb">
+  <div class="hero-stripe" style="${stripe([sel])}"></div>
+  <div class="specs">${spec('Section',esc(secName(p.section)))}${spec('Quality',esc(qualName(p.quality)))}${spec('Weight',p.gsm+' GSM')}${spec('Width',p.width+' inch')}${spec('Composition',esc(p.composition))}${spec('Price',money(p.price)+' / m')}${spec('Minimum order',num(p.moq)+' m')}${spec('In stock',num(p.stock)+' m')}</div>
+  <h3 class="h3">Colour <span class="muted">${esc(sel)}</span></h3><div class="swpick">${p.colours.map(c=>`<button class="swbtn ${c===sel?'on':''}" data-act="pickColour" data-c="${esc(c)}"><i style="background:${hex(c)}"></i>${esc(c)}</button>`).join('')}</div>
+  ${buyer?`<h3 class="h3">Quantity (metres)</h3><div class="qty"><input id="qty" type="number" inputmode="numeric" min="${p.moq}" step="100" value="${q}" data-input="sheetQty"><span>Total <b id="qtyTotal">${money(q*p.price)}</b></span></div>`:''}
+  </div>${buyer?`<div class="sheet-foot three"><button class="btn sec" data-act="reqSample">Sample</button><button class="btn sec" data-act="quoteFromProduct">Get quotes</button><button class="btn pri" data-act="orderNow">Order now</button></div>`:''}`;
+}
+function sCheckout(){
+  const s=U.sheet;const total=s.qty*s.price;
+  return head('Authorize payment','FabriLink holds the payment in escrow until you confirm delivery.')+`<div class="sheet-body" data-scroll="sb">
+  <div class="sumcard"><div class="sum-top"><span class="dot lg" style="${stripe([s.colour])}"></span><div><b>${esc(s.title)}</b><small>${esc(cname(s.supplierId))} · ${esc(s.colour)} · ${esc(qualName(s.quality))}</small></div></div>
+  ${line('Quantity',num(s.qty)+' m')}${line('Unit price',money(s.price)+' / m')}${s.lead?line('Lead time',s.lead+' days'):''}${line('Order total',money(total),'b')}
+  <small class="muted">The ${O().commission}% FabriLink service fee is deducted from the supplier's payout.</small></div>
+  <h3 class="h3">Payment method</h3><div class="radios">${PAY.map(([k,l,d])=>`<button class="radio ${s.pay===k?'on':''}" data-act="pay" data-k="${k}"><b>${l}</b><small>${d}</small></button>`).join('')}</div>
+  <p class="muted" style="font-size:13px;margin-top:12px">Prototype: no real payment is taken.</p></div>
+  <div class="sheet-foot"><button class="btn ghost" data-act="close">Cancel</button><button class="btn pri" data-act="authorize">Authorize ${money(total)}</button></div>`;
+}
+function rfqCard(r){
+  return`<div class="sumcard"><div class="sum-top"><span class="dot lg" style="${secArt(r.section)}"></span><div><b>${esc(secName(r.section))} · ${esc(r.colour)}</b><small>${esc(cname(r.buyerId))} ${vbadge(r.buyerId)} · posted ${ago(r.created)}</small></div></div></div>
+  <div class="specs" style="margin-top:10px">${spec('Colour',`<span class="dot" style="background:${hex(r.colour)}"></span> ${esc(r.colour)}`)}${spec('Quality',esc(qualName(r.quality)))}${spec('Weight',r.gsm+' GSM')}${spec('Quantity',num(r.qty)+' m')}${spec('Target price',r.target?money(r.target)+' / m':'Open')}${spec('Bids close',fdate(r.deadline))}</div>
+  ${r.notes?`<div class="notes">${esc(r.notes)}</div>`:''}`;
+}
+function sRfq(){
+  const r=get('rfqs',U.sheet.id);if(!r)return gone();
+  if(U.role==='supplier')return sBid(r);
+  const bids=bidsFor(r.id).sort((a,b)=>a.price-b.price);const fast=bids.length?Math.min(...bids.map(b=>b.lead)):0;
+  const own=U.role==='buyer'&&r.buyerId===U.actor;
+  return head(`RFQ ${ref(r.id)}`,`${pill(r.status)}`)+`<div class="sheet-body" data-scroll="sb">${rfqCard(r)}
+  <h3 class="h3">Bids (${bids.length}) ${bids.length>1?'<span class="muted">sorted by price</span>':''}</h3>
+  ${bids.length?bids.map((b,i)=>`<div class="bid ${i===0&&r.status==='open'?'best':''}"><div><b>${esc(cname(b.supplierId))} ${vbadge(b.supplierId)}</b><div class="nums"><span>${rating(b.supplierId)}</span></div></div><div style="text-align:right">${pill(b.status)}</div>
+  <div class="nums"><span><b>${money(b.price)}</b> /m</span><span><b>${b.lead}</b> days</span><span>Total <b>${money(b.price*r.qty)}</b></span></div>
+  <div class="tags" style="justify-content:flex-end">${i===0?'<span class="pill p-teal">Best price</span>':''}${b.lead===fast&&bids.length>1?'<span class="pill p-blue">Fastest</span>':''}</div>
+  ${b.note?`<div class="note">“${esc(b.note)}”</div>`:''}
+  ${own&&r.status==='open'&&b.status==='pending'?`<div class="note"><button class="btn pri sm" data-act="acceptBid" data-id="${b.id}">Accept &amp; pay</button></div>`:''}</div>`).join(''):empty('Waiting for bids','Verified mills with matching fabric have been notified.')}
+  </div>${own&&r.status==='open'?`<div class="sheet-foot"><button class="btn ${U.confirm===r.id?'danger':'ghost'}" data-act="closeRfq" data-id="${r.id}">${U.confirm===r.id?'Tap again to close':'Close RFQ'}</button><button class="btn sec" data-act="close">Done</button></div>`:''}`;
+}
+function sBid(r){
+  const b=bidsFor(r.id).find(x=>x.supplierId===U.actor);const ok=verified(U.actor);const open=r.status==='open';
+  let body=rfqCard(r);
+  if(!open)body+=`<div class="banner info" style="margin-top:12px">${ic('file')}<div><b>This RFQ is ${r.status}</b>${b?(b.status==='accepted'?'Your bid won — see Orders.':'Your bid was not selected this time.'):'Bidding has ended.'}</div></div>`;
+  else if(!ok)body+=`<div class="banner warn" style="margin-top:12px">${ic('shield')}<div><b>Verification required</b>Bidding unlocks once FabriLink verifies your business.</div></div>`;
+  else body+=`<h3 class="h3">${b?'Update your bid':'Your bid'}</h3><div class="form"><label>Price (৳ per metre)<input id="b_price" type="number" inputmode="decimal" min="1" value="${b?b.price:(r.target||'')}"></label><label>Lead time (days)<input id="b_lead" type="number" inputmode="numeric" min="1" value="${b?b.lead:14}"></label><label class="full">Note to buyer<textarea id="b_note" rows="2" placeholder="Lab dip, certifications, payment terms…">${esc(b?.note||'')}</textarea></label></div>
+  <p class="muted" style="font-size:13.5px;margin-top:8px">${bidsFor(r.id).length} bid${bidsFor(r.id).length===1?'':'s'} so far. Prices from other mills stay hidden.</p>`;
+  return head(`RFQ ${ref(r.id)}`,pill(b?b.status:r.status))+`<div class="sheet-body" data-scroll="sb">${body}</div>`+(open&&ok?`<div class="sheet-foot">${b&&b.status==='pending'?`<button class="btn ghost" data-act="withdrawBid" data-id="${b.id}">Withdraw</button>`:`<button class="btn ghost" data-act="close">Cancel</button>`}<button class="btn pri" data-act="submitBid" data-id="${r.id}">${b?'Update bid':'Submit bid'}</button></div>`:'');
+}
+function sOrder(){
+  const o=get('orders',U.sheet.id);if(!o)return gone();
+  const i=stepIdx(o.status);const isB=U.role==='buyer'&&o.buyerId===U.actor,isS=U.role==='supplier'&&o.supplierId===U.actor;
+  const h=k=>{const x=(o.history||[]).find(y=>y.s===k);return x?ago(x.t):''};
+  const disp=all('disputes').filter(d=>d.orderId===o.id).sort(byNew)[0];
+  let action='';
+  if(isS&&o.status==='paid')action=`<div class="action"><b>Payment is secured in escrow.</b><button class="btn pri" data-act="advance" data-id="${o.id}" data-to="production">Start production</button></div>`;
+  if(isS&&o.status==='production')action=`<div class="action"><b>Production running.</b><button class="btn pri" data-act="advance" data-id="${o.id}" data-to="qc">Mark quality check passed</button></div>`;
+  if(isS&&o.status==='qc')action=`<div class="action"><b>Ready to ship</b><input id="trk" class="inp" placeholder="Courier & tracking no., e.g. FLX-123456"><button class="btn pri" data-act="advance" data-id="${o.id}" data-to="shipped">${ic('truck',18)} Mark shipped</button></div>`;
+  if(isB&&o.status==='shipped')action=`<div class="action"><b>Has the fabric arrived?</b><span class="muted">Confirming releases the payment to the supplier.</span><button class="btn pri" data-act="advance" data-id="${o.id}" data-to="delivered">${ic('check',18)} Confirm delivery</button></div>`;
+  if(isB&&o.status==='delivered'&&!o.review){const st=U.sheet.stars||0;action=`<div class="action"><b>Rate ${esc(cname(o.supplierId))}</b><div class="starpick">${[1,2,3,4,5].map(n=>`<button class="${n<=st?'on':''}" data-act="star" data-n="${n}" aria-label="${n} stars">★</button>`).join('')}</div><input id="rv" class="inp" placeholder="What went well? (optional)"><button class="btn pri" data-act="review" data-id="${o.id}" ${st?'':'disabled'}>Submit review</button></div>`}
+  const msgs=all('messages').filter(m=>m.orderId===o.id).sort((a,b)=>a.ts-b.ts);
+  const party=isB||isS;
+  return head(`${esc(o.title)}`,`Order ${ref(o.id)} · ${pill(o.status)}`)+`<div class="sheet-body" data-scroll="sb">
+  ${disp?`<div class="banner ${disp.status==='open'?'bad':'info'}">${ic('alert')}<div><b>Dispute ${disp.status==='open'?'open':'resolved'}: ${esc(disp.reason)}</b>${esc(disp.resolution||disp.details)}</div></div>`:''}
+  <ul class="tl">${STEPS.map(([k,l],n)=>`<li class="${n<=i?'done':''} ${n===i?'cur':''}"><span></span><b>${l}</b><small>${n<=i?h(k):''}</small></li>`).join('')}</ul>
+  ${action}
+  <h3 class="h3">Details</h3><div class="specs">${spec('Buyer',esc(cname(o.buyerId)))}${spec('Supplier',esc(cname(o.supplierId)))}${spec('Colour',`<span class="dot" style="background:${hex(o.colour)}"></span> ${esc(o.colour)}`)}${spec('Quality',esc(qualName(o.quality)))}${spec('Quantity',num(o.qty)+' m')}${spec('Unit price',money(o.price)+' / m')}${spec('Total',money(o.total))}${spec('Payment',esc(payName(o.pay))+' · '+({held:'in escrow',released:'released',refunded:'refunded'}[o.payState]||o.payState))}${o.tracking?spec('Tracking',esc(o.tracking)):''}${o.rfqId?spec('From RFQ',ref(o.rfqId)):''}</div>
+  ${o.review?`<div class="notes"><span class="stars">${stars(o.review.stars)}</span> ${esc(o.review.text||'')}</div>`:''}
+  <h3 class="h3">Messages</h3><div class="chat" data-scroll="chat">${msgs.map(m=>`<div class="msg ${m.from===U.actor?'me':''}">${esc(m.text)}<small>${esc(m.from===U.actor?'You':cname(m.from))} · ${ago(m.ts)}</small></div>`).join('')||'<p class="muted" style="font-size:14px">No messages yet.</p>'}</div>
+  ${party?`<div class="chatbar"><input id="msgInput" placeholder="Message ${esc(cname(isB?o.supplierId:o.buyerId))}" autocomplete="off"><button class="btn pri" data-act="sendMsg" data-id="${o.id}" aria-label="Send">${ic('send',18)}</button></div>`:''}
+  ${party&&(!disp||disp.status!=='open')?`<p style="margin-top:16px"><button class="link" data-act="openDispute" data-id="${o.id}">Report a problem with this order</button></p>`:''}
+  </div>`;
+}
+function sDispute(){
+  const o=get('orders',U.sheet.id);if(!o)return gone();
+  return head('Report a problem',`Order ${ref(o.id)} · ${esc(o.title)}`)+`<div class="sheet-body"><div class="form">
+  <label class="full">What went wrong?<select id="d_reason"><option>Late delivery</option><option>Quality below specification</option><option>Wrong colour or shade</option><option>Short quantity</option><option>Payment issue</option><option>Other</option></select></label>
+  <label class="full">Details<textarea id="d_details" rows="4" placeholder="Describe the issue — FabriLink admin will review it."></textarea></label></div>
+  <p class="muted" style="font-size:13.5px;margin-top:8px">Payment for this order stays in escrow until the dispute is resolved.</p></div>
+  <div class="sheet-foot"><button class="btn ghost" data-act="back" data-type="order" data-id="${o.id}">Back</button><button class="btn danger" data-act="submitDispute" data-id="${o.id}">Submit dispute</button></div>`;
+}
+function sShipSample(){
+  const s=get('samples',U.sheet.id);if(!s)return gone();
+  return head('Dispatch sample',`${esc(s.title)} · ${esc(s.colour)} → ${esc(cname(s.buyerId))}`)+`<div class="sheet-body"><div class="form"><label class="full">Courier &amp; tracking number<input id="s_trk" placeholder="e.g. FLX-20931"></label></div></div>
+  <div class="sheet-foot"><button class="btn ghost" data-act="close">Cancel</button><button class="btn pri" data-act="confirmShipSample" data-id="${s.id}">${ic('truck',18)} Mark dispatched</button></div>`;
+}
+function sNotifs(){
+  const l=myNotifs();
+  return head('Notifications',l.length?`${l.filter(n=>!n.read).length} unread`:'')+`<div class="sheet-body" data-scroll="sb">${l.map(n=>`<button class="notif ${n.read?'':'unread'}" data-act="openNotif" data-id="${n.id}"><span style="color:var(--acc)">${ic('bell',18)}</span><span>${esc(n.text)}<small>${ago(n.ts)}</small></span></button>`).join('')||empty('All caught up','Updates about RFQs, bids, orders and samples land here.')}</div>
+  ${l.some(n=>!n.read)?`<div class="sheet-foot"><button class="btn sec" data-act="readAll">Mark all as read</button></div>`:''}`;
+}
+function sAccount(){
+  const c=me();
+  return head(c?esc(c.name):'FabriLink Admin',c?`${c.type==='buyer'?'Buyer':'Supplier'} · ${esc(c.city)}`:'Platform operations')+`<div class="sheet-body">
+  ${c?`<div class="specs">${spec('Verification',c.status==='suspended'?pill('suspended'):pill(c.kyc==='verified'?'verified':'kyc'+c.kyc))}${spec('Member since',fdate(c.created))}${spec('Trade license',esc(c.license||'—'))}${spec('BIN',esc(c.bin||'—'))}${c.type==='supplier'?spec('Rating',rating(c.id)):''}${spec('Orders',all('orders').filter(o=>o.buyerId===c.id||o.supplierId===c.id).length)}</div>`:`<p class="muted">You manage verification, market monitoring, disputes and configurator options.</p>`}
+  <p class="muted" style="font-size:13.5px;margin-top:14px">${MODE==='db'?'Live workspace — data syncs across devices.':'Demo mode — data is saved '+WHERE+' only.'}</p></div>
+  <div class="sheet-foot"><button class="btn ghost" data-act="logout">${ic('logout',18)} Switch portal</button><button class="btn sec" data-act="close">Done</button></div>`;
+}
+
+/* ---------- configurator (popup) ---------- */
+function cfgSteps(){return U.cfg.mode==='find'?['Section','Colour','Quality']:['Section','Colour','Quality','Details']}
+function cfgValid(step,c=U.cfg){if(c.mode==='find')return true;if(step===0)return!!c.section;if(step===1)return c.colours.length>0;if(step===2)return!!c.quality;return true}
+function cfgOpen(mode,pre={}){
+  const base={mode,step:0,section:null,colours:[],quality:null,gsm:180};
+  if(mode==='find')Object.assign(base,{section:U.filter.section,colours:U.filter.colour?[U.filter.colour]:[],quality:U.filter.quality});
+  U.cfg={...base,...pre};openSheet({type:'cfg'});
+}
+function countFind(c){return catalog().filter(p=>matches(p,{section:c.section,colour:c.colours[0],quality:c.quality})).length}
+function sCfg(){
+  const c=U.cfg;const L=cfgSteps();const last=c.step===L.length-1;
+  const titles={find:'Find fabric',rfq:'Post an RFQ',product:c.editId?'Edit product':'Add a product'};
+  const sub={find:'Pick a section, colour and quality — we’ll show matching fabric.',rfq:'Tell mills exactly what you need. Verified suppliers will bid.',product:'Describe the fabric you sell so buyers can find it.'};
+  let body='';
+  if(c.step===0)body=`<div class="secgrid">${c.mode==='find'?`<button class="sectile big ${!c.section?'on':''}" data-act="cfgSection" data-id=""><span class="art any">${ic('grid',24)}</span><span>Any section</span></button>`:''}${O().sections.map(s=>`<button class="sectile big ${c.section===s.id?'on':''}" data-act="cfgSection" data-id="${s.id}"><span class="art" style="${secArt(s.id)}"></span><span>${esc(s.name)}</span></button>`).join('')}</div>`;
+  if(c.step===1)body=`<p class="hint">${c.mode==='product'?'Select every colour you can supply.':'Select one colour.'}</p><div class="colgrid">${c.mode==='find'?`<button class="colbtn ${!c.colours.length?'on':''}" data-act="cfgColour" data-c=""><i class="any"></i><span>Any colour</span></button>`:''}${O().colours.map(x=>`<button class="colbtn ${c.colours.includes(x.name)?'on':''}" data-act="cfgColour" data-c="${esc(x.name)}"><i style="background:${x.hex}"></i><span>${esc(x.name)}</span></button>`).join('')}</div>`;
+  if(c.step===2)body=`<div class="qgrid">${c.mode==='find'?`<button class="qcard ${!c.quality?'on':''}" data-act="cfgQuality" data-id=""><span class="grade gC">ALL</span><b>Any quality</b><small>Show every grade</small></button>`:''}${O().qualities.map(q=>`<button class="qcard ${c.quality===q.id?'on':''}" data-act="cfgQuality" data-id="${esc(q.id)}"><span class="grade g${esc(q.id)}">${esc(q.grade)}</span><b>${esc(q.name)}</b><small>${esc(q.desc)}</small></button>`).join('')}</div>
+  ${c.mode!=='find'?`<h3 class="h3">Fabric weight <span id="gsmLab">${c.gsm} GSM</span></h3><input type="range" class="range" min="80" max="450" step="5" value="${c.gsm}" data-input="gsm" aria-label="Fabric weight in GSM"><div class="range-l"><span>80 · light</span><span>450 · heavy</span></div>`:''}`;
+  if(c.step===3&&c.mode==='rfq')body=`<div class="form"><label>Quantity (metres)<input id="f_qty" type="number" inputmode="numeric" min="100" step="100" value="${c.qty||5000}"></label><label>Target price (৳ / m)<input id="f_target" type="number" inputmode="decimal" min="1" value="${c.target||''}" placeholder="Optional"></label><label>Bids close on<input id="f_deadline" type="date" value="${c.deadline||dateIn(14)}"></label><label>Delivery to<input id="f_city" value="${esc(c.city||me()?.city||'')}"></label><label class="full">Notes for suppliers<textarea id="f_notes" rows="3" placeholder="End use, finish, certifications…">${esc(c.notes||'')}</textarea></label></div>`;
+  if(c.step===3&&c.mode==='product')body=`<div class="form"><label class="full">Product name<input id="f_name" value="${esc(c.name||(qual(c.quality)?.name+' '+secName(c.section)))}"></label><label>Composition<select id="f_comp">${COMPOSITIONS.map(x=>`<option ${x===(c.composition||'100% Cotton')?'selected':''}>${x}</option>`).join('')}</select></label><label>Width (inch)<input id="f_width" type="number" min="30" max="120" value="${c.width||58}"></label><label>Price (৳ / m)<input id="f_price" type="number" inputmode="decimal" min="1" value="${c.price||''}" placeholder="e.g. 240"></label><label>Minimum order (m)<input id="f_moq" type="number" min="1" step="100" value="${c.moq||1000}"></label><label class="full">Stock available (m)<input id="f_stock" type="number" min="0" step="100" value="${c.stock??10000}"></label></div>`;
+  const sumHtml=`<span class="${c.section?'':'unset'}">${c.section?esc(secName(c.section)):'Section'}</span><span class="${c.colours.length?'':'unset'}">${c.colours.length?c.colours.slice(0,4).map(n=>`<i class="dot" style="background:${hex(n)}"></i>`).join('')+' '+(c.colours.length===1?esc(c.colours[0]):c.colours.length+' colours'):'Colour'}</span><span class="${c.quality?'':'unset'}">${c.quality?esc(qualName(c.quality)):'Quality'}</span>${c.mode!=='find'&&c.step>=2?`<span>${c.gsm} GSM</span>`:''}`;
+  const nextLbl=!last?'Next':c.mode==='find'?`Show ${countFind(c)} fabric${countFind(c)===1?'':'s'}`:c.mode==='rfq'?'Post RFQ':(c.editId?'Save changes':'Publish product');
+  return head(titles[c.mode],sub[c.mode])+`<div class="stepper">${L.map((l,i)=>`<button class="st ${i===c.step?'on':''} ${i<c.step?'done':''}" data-act="cfgStep" data-i="${i}"><span>${i<c.step?ic('check',12):i+1}</span>${l}</button>`).join('')}</div>
+  <div class="sheet-body" data-scroll="sb">${body}</div><div class="cfgsum">${sumHtml}</div>
+  <div class="sheet-foot"><button class="btn ghost" data-act="${c.step?'cfgBack':'close'}">${c.step?'Back':'Cancel'}</button><button class="btn pri" data-act="cfgNext" ${cfgValid(c.step)?'':'disabled'}>${nextLbl}</button></div>`;
+}
+function captureDetails(){
+  const c=U.cfg;if(!c||c.step!==3)return;const v=id=>{const e=document.getElementById(id);return e?e.value:undefined};
+  if(c.mode==='rfq')Object.assign(c,{qty:v('f_qty'),target:v('f_target'),deadline:v('f_deadline'),city:v('f_city'),notes:v('f_notes')});
+  if(c.mode==='product')Object.assign(c,{name:v('f_name'),composition:v('f_comp'),width:v('f_width'),price:v('f_price'),moq:v('f_moq'),stock:v('f_stock')});
+}
+function cfgFinish(){
+  const c=U.cfg;
+  if(c.mode==='find'){U.filter={...U.filter,section:c.section||null,colour:c.colours[0]||null,quality:c.quality||null};U.tab='catalog';closeSheet();window.scrollTo(0,0);return}
+  captureDetails();
+  if(c.mode==='rfq'){
+    if(!needVerified())return;
+    const qty=Math.round(+c.qty);if(!(qty>=100))return toast('Enter a quantity of at least 100 m.');
+    if(!c.deadline||c.deadline<dateIn(0))return toast('Choose a closing date in the future.');
+    const r={id:uid('r'),buyerId:U.actor,section:c.section,colour:c.colours[0],quality:c.quality,gsm:c.gsm,qty,target:+c.target||null,deadline:c.deadline,city:c.city||'',notes:(c.notes||'').trim(),status:'open',created:Date.now()};
+    put('rfqs',r);
+    const secSup=new Set(all('products').filter(p=>p.section===r.section).map(p=>p.supplierId));
+    all('companies').filter(x=>x.type==='supplier'&&verified(x.id)&&(secSup.size?secSup.has(x.id):true)).forEach(x=>notify(x.id,`New RFQ: ${secName(r.section)} · ${r.colour} · ${num(r.qty)} m from ${cname(U.actor)}`,{type:'rfq',id:r.id}));
+    notify('admin',`${cname(U.actor)} posted RFQ ${ref(r.id)} — ${secName(r.section)}, ${num(r.qty)} m`);
+    U.tab='rfqs';U.cfg=null;U.sheet={type:'rfq',id:r.id};render();toast('RFQ posted — matching mills have been notified');return;
+  }
+  if(c.mode==='product'){
+    const name=(c.name||'').trim();const price=+c.price,moq=Math.round(+c.moq),stock=Math.round(+c.stock),width=+c.width;
+    if(!name)return toast('Give the product a name.');if(!(price>0))return toast('Enter a price per metre.');if(!(moq>0))return toast('Enter a minimum order quantity.');if(!(stock>=0))return toast('Enter the stock available.');
+    const data={name,section:c.section,colours:c.colours,quality:c.quality,gsm:c.gsm,composition:c.composition,width:width||58,price,moq,stock};
+    if(c.editId){edit('products',c.editId,p=>Object.assign(p,data));toast('Product updated')}
+    else{const p={id:uid('p'),supplierId:U.actor,created:Date.now(),...data};put('products',p);notify('admin',`${cname(U.actor)} listed ${name} (${secName(c.section)})`);toast(verified(U.actor)?'Product published to the catalog':'Saved — it goes live after verification')}
+    U.tab='products';closeSheet();
+  }
+}
+
+/* ---------- actions ---------- */
+const A={
+  close:()=>closeSheet(),
+  back:d=>openSheet({type:d.type,id:d.id}),
+  portal:d=>{if(d.role==='admin')return setSession('admin','admin');openSheet({type:'pick',role:d.role})},
+  login:d=>setSession(comp(d.id).type,d.id),
+  register:()=>{
+    const v=id=>(document.getElementById(id)?.value||'').trim();const name=v('r_name'),city=v('r_city');
+    if(!name||!city)return toast('Enter the company name and city.');
+    if(all('companies').some(c=>c.name.toLowerCase()===name.toLowerCase()))return toast('A company with this name already exists.');
+    const type=U.sheet.role;const c={id:uid(type==='buyer'?'b':'s'),type,name,city,license:v('r_lic'),bin:v('r_bin'),kyc:'pending',status:'active',rating:0,reviews:0,created:Date.now()};
+    put('companies',c);notify('admin',`${name} registered as a ${type} — KYC review needed`);setSession(type,c.id);toast('Registered — verification pending');
+  },
+  logout:()=>{U.role=null;U.actor=null;U.sheet=null;lsSet('fabrilink-session','');render();window.scrollTo(0,0)},
+  tab:d=>{U.tab=d.tab;U.confirm=null;render();window.scrollTo(0,0)},
+  seg:d=>{U[d.name]=d.k;U.confirm=null;render()},
+  account:()=>openSheet({type:'account'}),
+  notifs:()=>openSheet({type:'notifs'}),
+  readAll:()=>myNotifs().filter(n=>!n.read).forEach(n=>edit('notifs',n.id,x=>x.read=true)),
+  openNotif:d=>{const n=get('notifs',d.id);if(!n)return;if(!n.read)edit('notifs',n.id,x=>x.read=true);if(n.link&&get(n.link.type==='rfq'?'rfqs':'orders',n.link.id))openSheet({type:n.link.type,id:n.link.id})},
+  browse:d=>{U.filter={q:'',section:d.id,colour:null,quality:null};U.tab='catalog';render();window.scrollTo(0,0)},
+  unfilter:d=>{U.filter[d.key]=null;render()},
+  clearFilter:()=>{U.filter={q:'',section:null,colour:null,quality:null};render()},
+  rfqFromFilter:()=>cfgOpen('rfq',{section:U.filter.section,colours:U.filter.colour?[U.filter.colour]:[],quality:U.filter.quality,step:!U.filter.section?0:!U.filter.colour?1:2}),
+  cfgOpen:d=>cfgOpen(d.mode),
+  cfgSection:d=>{U.cfg.section=d.id||null;U.cfg.step=1;render()},
+  cfgColour:d=>{const c=U.cfg;if(c.mode==='product'){c.colours=c.colours.includes(d.c)?c.colours.filter(x=>x!==d.c):[...c.colours,d.c];render()}else{c.colours=d.c?[d.c]:[];c.step=2;render()}},
+  cfgQuality:d=>{U.cfg.quality=d.id||null;render()},
+  cfgStep:d=>{const i=+d.i;const c=U.cfg;for(let k=0;k<i;k++)if(!cfgValid(k))return toast('Complete this step first.');captureDetails();c.step=i;render()},
+  cfgBack:()=>{captureDetails();U.cfg.step--;render()},
+  cfgNext:()=>{const c=U.cfg;if(c.step<cfgSteps().length-1){c.step++;render()}else cfgFinish()},
+  editProduct:d=>{const p=get('products',d.id);cfgOpen('product',{editId:p.id,section:p.section,colours:[...p.colours],quality:p.quality,gsm:p.gsm,name:p.name,composition:p.composition,width:p.width,price:p.price,moq:p.moq,stock:p.stock})},
+  removeProduct:d=>{if(U.confirm!==d.id){U.confirm=d.id;return render()}U.confirm=null;del('products',d.id);toast('Product removed')},
+  openProduct:d=>openSheet({type:'product',id:d.id,colour:d.colour||null}),
+  pickColour:d=>{U.sheet.colour=d.c;render()},
+  reqSample:()=>{
+    const p=get('products',U.sheet.id);const col=U.sheet.colour;if(!p)return;
+    if(all('samples').some(s=>s.buyerId===U.actor&&s.productId===p.id&&s.colour===col&&['requested','dispatched'].includes(s.status)))return toast('You already have this sample on the way.');
+    put('samples',{id:uid('m'),buyerId:U.actor,supplierId:p.supplierId,productId:p.id,title:p.name,colour:col,status:'requested',tracking:null,created:Date.now()});
+    notify(p.supplierId,`New sample request: ${p.name} (${col}) from ${cname(U.actor)}`);toast('Sample requested — track it under Samples');
+  },
+  quoteFromProduct:()=>{const p=get('products',U.sheet.id);cfgOpen('rfq',{section:p.section,colours:[U.sheet.colour],quality:p.quality,gsm:p.gsm,qty:Math.max(p.moq,+(document.getElementById('qty')?.value)||p.moq),step:3})},
+  orderNow:()=>{
+    const p=get('products',U.sheet.id);if(!p||!needVerified())return;const qty=Math.round(+(document.getElementById('qty')?.value||0));
+    if(qty<p.moq)return toast(`Minimum order is ${num(p.moq)} m.`);if(qty>p.stock)return toast(`Only ${num(p.stock)} m in stock — post an RFQ for more.`);
+    openSheet({type:'checkout',productId:p.id,supplierId:p.supplierId,title:p.name,section:p.section,colour:U.sheet.colour,quality:p.quality,gsm:p.gsm,qty,price:p.price,pay:'bkash'});
+  },
+  acceptBid:d=>{
+    if(!needVerified())return;const b=get('bids',d.id);const r=get('rfqs',b.rfqId);
+    openSheet({type:'checkout',bidId:b.id,rfqId:r.id,supplierId:b.supplierId,title:`${secName(r.section)} — RFQ ${ref(r.id)}`,section:r.section,colour:r.colour,quality:r.quality,gsm:r.gsm,qty:r.qty,price:b.price,lead:b.lead,pay:'bank'});
+  },
+  pay:d=>{U.sheet.pay=d.k;render()},
+  authorize:()=>{
+    const s=U.sheet;const now=Date.now();
+    const o={id:uid('o'),buyerId:U.actor,supplierId:s.supplierId,productId:s.productId||null,rfqId:s.rfqId||null,title:s.title,section:s.section,colour:s.colour,quality:s.quality,gsm:s.gsm,qty:s.qty,price:s.price,total:s.qty*s.price,pay:s.pay,payState:'held',status:'paid',tracking:null,review:null,created:now,history:[{s:'placed',t:now},{s:'paid',t:now}]};
+    put('orders',o);
+    if(s.productId)edit('products',s.productId,p=>p.stock=Math.max(0,p.stock-s.qty));
+    if(s.bidId){edit('rfqs',s.rfqId,r=>{r.status='awarded';r.awardedBid=s.bidId});
+      bidsFor(s.rfqId).forEach(b=>{if(b.id===s.bidId)edit('bids',b.id,x=>x.status='accepted');else if(b.status==='pending'){edit('bids',b.id,x=>x.status='rejected');notify(b.supplierId,`RFQ ${ref(s.rfqId)} was awarded to another mill`,{type:'rfq',id:s.rfqId})}})}
+    notify(o.supplierId,`New order ${ref(o.id)}: ${num(o.qty)} m ${o.title} (${o.colour}) from ${cname(U.actor)} — payment in escrow`,{type:'order',id:o.id});
+    notify('admin',`Order ${ref(o.id)} placed: ${cname(U.actor)} → ${cname(o.supplierId)}, ${money(o.total)}`);
+    U.tab='orders';U.oseg='active';U.sheet={type:'order',id:o.id};render();toast('Payment authorized — order placed');
+  },
+  closeRfq:d=>{if(U.confirm!==d.id){U.confirm=d.id;return render()}U.confirm=null;edit('rfqs',d.id,r=>r.status='closed');bidsFor(d.id).filter(b=>b.status==='pending').forEach(b=>{edit('bids',b.id,x=>x.status='rejected');notify(b.supplierId,`RFQ ${ref(d.id)} was closed by the buyer`,{type:'rfq',id:d.id})});toast('RFQ closed')},
+  openRfq:d=>openSheet({type:'rfq',id:d.id}),
+  submitBid:d=>{
+    if(!needVerified())return;const r=get('rfqs',d.id);if(!r||r.status!=='open')return toast('This RFQ is no longer open.');
+    const price=+document.getElementById('b_price').value,lead=Math.round(+document.getElementById('b_lead').value),note=document.getElementById('b_note').value.trim();
+    if(!(price>0))return toast('Enter your price per metre.');if(!(lead>0))return toast('Enter a lead time in days.');
+    const b=bidsFor(r.id).find(x=>x.supplierId===U.actor);
+    if(b){edit('bids',b.id,x=>Object.assign(x,{price,lead,note,status:'pending'}));notify(r.buyerId,`${cname(U.actor)} updated their bid to ${money(price)}/m on RFQ ${ref(r.id)}`,{type:'rfq',id:r.id});toast('Bid updated')}
+    else{put('bids',{id:uid('k'),rfqId:r.id,supplierId:U.actor,price,lead,note,status:'pending',created:Date.now()});notify(r.buyerId,`${cname(U.actor)} bid ${money(price)}/m on your RFQ ${ref(r.id)}`,{type:'rfq',id:r.id});toast('Bid submitted')}
+    closeSheet();
+  },
+  withdrawBid:d=>{edit('bids',d.id,x=>x.status='withdrawn');toast('Bid withdrawn');closeSheet()},
+  openOrder:d=>{U.chatBottom=true;openSheet({type:'order',id:d.id})},
+  advance:d=>{
+    const o=get('orders',d.id);if(!o)return;const to=d.to;let trk=null;
+    if(to==='shipped'){trk=(document.getElementById('trk')?.value||'').trim();if(!trk)return toast('Enter the courier and tracking number.')}
+    edit('orders',o.id,x=>{x.status=to;x.history=[...(x.history||[]),{s:to,t:Date.now()}];if(trk)x.tracking=trk;if(to==='delivered'&&x.payState==='held')x.payState='released'});
+    const label={production:'is now in production',qc:'passed quality check',shipped:`has shipped (${trk})`,delivered:'was confirmed delivered — payment released'}[to];
+    notify(to==='delivered'?o.supplierId:o.buyerId,`Order ${ref(o.id)} ${label}`,{type:'order',id:o.id});notify('admin',`Order ${ref(o.id)} ${label}`);
+    toast(to==='delivered'?'Delivery confirmed — payment released to supplier':'Order updated');
+  },
+  star:d=>{U.sheet.stars=+d.n;render()},
+  review:d=>{
+    const st=U.sheet.stars;if(!st)return;const text=(document.getElementById('rv')?.value||'').trim();const o=get('orders',d.id);
+    edit('orders',o.id,x=>x.review={stars:st,text});
+    const revs=all('orders').filter(x=>x.supplierId===o.supplierId&&x.review).map(x=>x.review.stars);
+    edit('companies',o.supplierId,c=>{c.reviews=revs.length;c.rating=Math.round(sum(revs)/revs.length*10)/10});
+    notify(o.supplierId,`${cname(U.actor)} rated order ${ref(o.id)} ${st}★`,{type:'order',id:o.id});toast('Thanks for your review');
+  },
+  sendMsg:d=>{
+    const inp=document.getElementById('msgInput');const text=(inp?.value||'').trim();if(!text)return;const o=get('orders',d.id);
+    put('messages',{id:uid('x'),orderId:o.id,from:U.actor,text,ts:Date.now()});
+    notify(U.actor===o.buyerId?o.supplierId:o.buyerId,`New message on order ${ref(o.id)} from ${cname(U.actor)}`,{type:'order',id:o.id});
+    FORGET.add('msgInput');U.chatBottom=true;inp.value='';
+  },
+  openDispute:d=>openSheet({type:'dispute',id:d.id}),
+  submitDispute:d=>{
+    const o=get('orders',d.id);const reason=document.getElementById('d_reason').value,details=document.getElementById('d_details').value.trim();
+    if(details.length<10)return toast('Please describe the problem in a sentence or two.');
+    const against=U.actor===o.buyerId?o.supplierId:o.buyerId;
+    put('disputes',{id:uid('d'),orderId:o.id,raisedBy:U.actor,against,reason,details,status:'open',created:Date.now()});
+    notify('admin',`Dispute opened on order ${ref(o.id)} by ${cname(U.actor)}: ${reason}`);notify(against,`${cname(U.actor)} opened a dispute on order ${ref(o.id)}: ${reason}`,{type:'order',id:o.id});
+    U.sheet={type:'order',id:o.id};render();toast('Dispute submitted — FabriLink will review it');
+  },
+  shipSample:d=>openSheet({type:'shipSample',id:d.id}),
+  confirmShipSample:d=>{const t=(document.getElementById('s_trk')?.value||'').trim();if(!t)return toast('Enter a tracking number.');const s=edit('samples',d.id,x=>{x.status='dispatched';x.tracking=t});notify(s.buyerId,`Your ${s.title} (${s.colour}) sample was dispatched — ${t}`);closeSheet();toast('Sample dispatched')},
+  sampleVerdict:d=>{const s=edit('samples',d.id,x=>x.status=d.v);notify(s.supplierId,`${cname(U.actor)} ${d.v} the ${s.title} (${s.colour}) sample`);toast(d.v==='approved'?'Sample approved':'Sample declined')},
+  kyc:d=>{const c=edit('companies',d.id,x=>x.kyc=d.v);if(d.v!=='pending')notify(c.id,d.v==='verified'?'Your business is verified — you now have full access to FabriLink.':'Your verification was rejected. Contact support with updated documents.');toast(d.v==='verified'?`${c.name} verified`:d.v==='rejected'?`${c.name} rejected`:'Review re-opened')},
+  suspend:d=>{if(d.v==='suspended'&&U.confirm!==d.id){U.confirm=d.id;return render()}U.confirm=null;const c=edit('companies',d.id,x=>x.status=d.v);toast(d.v==='suspended'?`${c.name} suspended`:`${c.name} reactivated`)},
+  resolve:d=>{
+    const ds=get('disputes',d.id);const o=get('orders',ds.orderId);
+    const res={release:'Payment released to the supplier.',refund:'Buyer refunded in full.',settled:'Settled between the parties with admin mediation.'}[d.v];
+    edit('disputes',ds.id,x=>{x.status='resolved';x.resolution=res;x.resolvedAt=Date.now()});
+    if(o&&d.v!=='settled')edit('orders',o.id,x=>x.payState=d.v==='refund'?'refunded':'released');
+    [ds.raisedBy,ds.against].forEach(id=>notify(id,`Dispute on order ${ref(ds.orderId)} resolved: ${res}`,{type:'order',id:ds.orderId}));toast('Dispute resolved');
+  },
+  addSection:()=>{const n=(document.getElementById('newSec').value||'').trim();if(!n)return toast('Enter a section name.');if(O().sections.some(s=>s.name.toLowerCase()===n.toLowerCase()))return toast('That section already exists.');const o=clone(O());o.sections.push({id:n.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,20)+'-'+Math.random().toString(36).slice(2,5),name:n});FORGET.add('newSec');putOptions(o);toast('Section added to the configurator')},
+  rmSection:d=>{const u=all('products').filter(p=>p.section===d.id).length;if(u)return toast(`In use by ${u} product${u===1?'':'s'} — can't remove.`);const o=clone(O());o.sections=o.sections.filter(s=>s.id!==d.id);putOptions(o)},
+  addColour:()=>{const n=(document.getElementById('newColName').value||'').trim(),h=document.getElementById('newColHex').value;if(!n)return toast('Enter a colour name.');if(O().colours.some(c=>c.name.toLowerCase()===n.toLowerCase()))return toast('That colour already exists.');const o=clone(O());o.colours.push({name:n,hex:h});FORGET.add('newColName');putOptions(o);toast('Colour added to the configurator')},
+  rmColour:d=>{const u=all('products').filter(p=>p.colours.includes(d.c)).length;if(u)return toast(`Used by ${u} product${u===1?'':'s'} — can't remove.`);const o=clone(O());o.colours=o.colours.filter(c=>c.name!==d.c);putOptions(o)},
+  addQuality:()=>{const v=id=>(document.getElementById(id).value||'').trim();const name=v('nq_name'),grade=v('nq_grade'),desc=v('nq_desc');if(!name||!grade)return toast('Enter a name and grade label.');const o=clone(O());o.qualities.push({id:'Q'+Math.random().toString(36).slice(2,6),name,grade,desc});['nq_name','nq_grade','nq_desc'].forEach(x=>FORGET.add(x));putOptions(o);toast('Grade added')},
+  rmQuality:d=>{const u=all('products').filter(p=>p.quality===d.id).length;if(u)return toast(`Used by ${u} product${u===1?'':'s'} — can't remove.`);if(O().qualities.length<=1)return toast('Keep at least one grade.');const o=clone(O());o.qualities=o.qualities.filter(q=>q.id!==d.id);putOptions(o)},
+  saveComm:()=>{const v=+document.getElementById('comm').value;if(!(v>=0&&v<=20))return toast('Enter a rate between 0 and 20%.');const o=clone(O());o.commission=v;putOptions(o);toast('Commission saved')},
+  resetDemo:()=>{if(U.confirm!=='reset'){U.confirm='reset';return render()}U.confirm=null;seedLocal();toast('Demo data reset');render()}
+};
+const INPUT={
+  q:v=>{U.filter.q=v;clearTimeout(INPUT._t);INPUT._t=setTimeout(render,150)},
+  gsm:v=>{U.cfg.gsm=+v;const l=document.getElementById('gsmLab');if(l)l.textContent=v+' GSM';const s=document.querySelector('.cfgsum span:last-child');if(s&&/GSM/.test(s.textContent))s.textContent=v+' GSM'},
+  sheetQty:v=>{U.sheet.qty=+v;const p=get('products',U.sheet.id);const t=document.getElementById('qtyTotal');if(p&&t)t.textContent=money((+v||0)*p.price)}
+};
+function setSession(role,actor){U.role=role;U.actor=actor;U.tab='home';U.sheet=null;U.cfg=null;U.filter={q:'',section:null,colour:null,quality:null};lsSet('fabrilink-session',JSON.stringify({role,actor}));render();window.scrollTo(0,0)}
+
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.disabled)return;const f=A[el.dataset.act];if(f){e.preventDefault();f(el.dataset,el)}});
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.input;if(k&&INPUT[k])INPUT[k](e.target.value,e.target)});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&U.sheet)closeSheet();
+  if(e.key==='Enter'&&e.target.id==='msgInput'){e.preventDefault();const b=document.querySelector('[data-act="sendMsg"]');b&&b.click()}
+  if(e.key==='Enter'&&e.target.id==='newSec'){e.preventDefault();A.addSection()}
+});
+
+/* ---------- boot ---------- */
+function restoreSession(){try{const s=JSON.parse(lsGet('fabrilink-session')||'null');if(s&&(s.actor==='admin'||get('companies',s.actor))){U.role=s.role;U.actor=s.actor}}catch(e){}}
+function startLocal(){MODE='local';if(!loadLocal())seedLocal();restoreSession();render()}
+function seedRemote(db){
+  const s=makeSeed(Date.now());const b=db.batch();b.set(db.doc('config/options'),clone(s.options));
+  COLS.forEach(c=>(s[c]||[]).forEach(x=>b.set(db.collection(c).doc(x.id),clone(x))));
+  b.commit().then(()=>toast('Starter data loaded')).catch(()=>toast('Could not load starter data — check your Firestore rules.'));
+}
+let seeded=false;
+function startDb(db,canSeed){
+  DB=db;MODE='db';let got=new Set();const need=COLS.length+1;let timer=setTimeout(()=>{if(got.size<need)toast('The live data can’t be reached yet — showing what has loaded.')},10000);
+  const done=k=>{got.add(k);if(got.size>=need){clearTimeout(timer);restoreSession()}render()};
+  COLS.forEach(c=>db.collection(c).onSnapshot(snap=>{const o={};snap.docs.forEach(d=>o[d.id]={...d.data(),id:d.id});D[c]=o;if(!snap.metadata.fromCache)done(c);else render()},err=>{done(c);if(err&&err.code!=='revoked')toast('Some data could not be loaded.')}));
+  db.doc('config/options').onSnapshot(s=>{if(s.exists)D.options=s.data();else if(canSeed&&!seeded&&!s.metadata.fromCache){seeded=true;seedRemote(db)}if(!s.metadata.fromCache)done('options');else render()},()=>done('options'));
+  restoreSession();render();
+}
+function loadScript(src){return new Promise((res,rej)=>{const el=document.createElement('script');el.src=src;el.onload=res;el.onerror=rej;document.head.appendChild(el)})}
+async function connectFirebase(conf){
+  const v='10.14.1';
+  await loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-app-compat.js`);
+  await loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-firestore-compat.js`);
+  firebase.initializeApp(conf);const db=firebase.firestore();
+  try{db.enablePersistence().catch(()=>{})}catch(e){}
+  return db;
+}
+/* Android back button (called by the app shell) */
+window.fabrilinkBack=function(){
+  if(U.sheet){if(U.sheet.type==='cfg'&&U.cfg&&U.cfg.step>0){captureDetails();U.cfg.step--;render();return true}closeSheet();return true}
+  if(U.role&&U.tab!=='home'){U.tab='home';U.confirm=null;render();window.scrollTo(0,0);return true}
+  return false;
+};
+(async function boot(){
+  doRender();
+  if(CFG.firebase&&CFG.firebase.projectId){
+    let db=null;try{db=await connectFirebase(CFG.firebase)}catch(e){db=null}
+    if(db)return startDb(db,true);
+    startLocal();toast('No connection to the live database — running in demo mode.');return;
+  }
+  let db=null;
+  if(!CFG.app){
+    try{
+      for(let i=0;i<15&&!(window.claude&&window.claude.use);i++)await new Promise(r=>setTimeout(r,100));
+      if(window.claude&&window.claude.use)db=await Promise.race([window.claude.use('db'),new Promise(r=>setTimeout(()=>r(null),8000))]);
+    }catch(e){db=null}
+  }
+  if(db)startDb(db,false);else startLocal();
+})();
+</script>
+</body>
+</html>
