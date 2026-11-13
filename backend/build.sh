@@ -12,3 +12,6 @@ USER_COUNT=$(python manage.py shell -c "from apps.users.models import User; prin
 if [ "$USER_COUNT" = "0" ]; then
   python manage.py seed_demo
 fi
+
+# Swap the published seed passwords for the ones set in the environment.
+python manage.py set_demo_passwords

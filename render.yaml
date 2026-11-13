@@ -26,6 +26,11 @@ services:
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
+      # Passwords for the seeded accounts; read them in the service's Environment tab.
+      - key: DEMO_ADMIN_PASSWORD
+        generateValue: true
+      - key: DEMO_USER_PASSWORD
+        generateValue: true
       - key: ALLOWED_HOSTS
         value: localhost
       - key: WEB_CONCURRENCY
