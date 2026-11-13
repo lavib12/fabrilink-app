@@ -32,6 +32,21 @@ def set_refresh_cookie(response: Response, refresh_token: str) -> None:
     )
 
 
+MOBILE_CLIENT_HEADER = "HTTP_X_CLIENT_PLATFORM"
+
+
+def is_mobile_client(request) -> bool:
+    """Native apps can't rely on httpOnly cookies, so they receive the refresh token in the body."""
+    return request.META.get(MOBILE_CLIENT_HEADER, "").lower() == "mobile"
+
+
+def attach_refresh_token(request, response: Response, refresh_token: str) -> None:
+    """Deliver the refresh token as a cookie (web) and, for mobile clients, in the body too."""
+    set_refresh_cookie(response, refresh_token)
+    if is_mobile_client(request):
+        response.data["data"]["refresh_token"] = refresh_token
+
+
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -57,7 +72,7 @@ class RegisterView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
-        set_refresh_cookie(response, tokens["refresh"])
+        attach_refresh_token(request, response, tokens["refresh"])
         return response
 
 
@@ -89,7 +104,7 @@ class LoginView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-        set_refresh_cookie(response, tokens["refresh"])
+        attach_refresh_token(request, response, tokens["refresh"])
         return response
 
 
@@ -102,9 +117,12 @@ class TokenRefreshCookieView(APIView):
         description="Rotate refresh token from cookie and issue new access token.",
     )
     def post(self, request):
-        refresh_token = request.COOKIES.get("fabrilink_refresh_token") or request.data.get(
-            "refresh"
-        )
+        if is_mobile_client(request):
+            refresh_token = request.data.get("refresh")
+        else:
+            refresh_token = request.COOKIES.get("fabrilink_refresh_token") or request.data.get(
+                "refresh"
+            )
         if not refresh_token:
             return Response(
                 {
@@ -116,17 +134,24 @@ class TokenRefreshCookieView(APIView):
 
         try:
             token = RefreshToken(refresh_token)
+
+            # Deleted or deactivated accounts must not be able to mint new tokens.
+            user = get_user_by_id(token["user_id"])
+            if user is None or not user.is_active:
+                token.blacklist()
+                raise TokenError("User account is inactive or no longer exists.")
+
             new_access_token = str(token.access_token)
 
             # Rotate refresh token if enabled
             if settings.SIMPLE_JWT.get("ROTATE_REFRESH_TOKENS", False):
                 token.blacklist()
-                new_refresh = RefreshToken.for_user(get_user_by_id(token["user_id"]))
+                new_refresh = RefreshToken.for_user(user)
                 response = Response(
                     {"success": True, "data": {"access_token": new_access_token}},
                     status=status.HTTP_200_OK,
                 )
-                set_refresh_cookie(response, str(new_refresh))
+                attach_refresh_token(request, response, str(new_refresh))
                 return response
 
             return Response(

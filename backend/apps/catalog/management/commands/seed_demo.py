@@ -8,6 +8,7 @@ from apps.companies.models import (
     Company,
     CompanyAddress,
     CompanyTypeChoices,
+    CreditStatusChoices,
     VerificationStatusChoices,
 )
 from apps.users.models import RoleChoices, User
@@ -32,6 +33,18 @@ class Command(BaseCommand):
         )
         admin_user.set_password("Admin12345!")
         admin_user.save()
+
+        # Cutting-hub operator for the hub queue and barcode scanning screens.
+        hub_user, _ = User.objects.get_or_create(
+            email="hub@fabrilink.com.bd",
+            defaults={
+                "phone": "+8801700000002",
+                "role": RoleChoices.HUB_STAFF,
+                "is_verified": True,
+            },
+        )
+        hub_user.set_password("Hub12345!")
+        hub_user.save()
 
         # 2. Create Garment Factories (Sellers)
         mills = [
@@ -119,6 +132,8 @@ class Command(BaseCommand):
                 "contact_email": "buyer@dhakatrendz.com",
                 "contact_phone": "+8801811000201",
                 "credit_limit": Decimal("50000.00"),
+                "credit_terms_days": 30,
+                "credit_status": CreditStatusChoices.ACTIVE,
             },
         )
         CompanyAddress.objects.get_or_create(
@@ -155,6 +170,8 @@ class Command(BaseCommand):
                 "contact_email": "newbuyer@testboutique.com",
                 "contact_phone": "+8801811000305",
                 "credit_limit": Decimal("75000.00"),
+                "credit_terms_days": 30,
+                "credit_status": CreditStatusChoices.ACTIVE,
             },
         )
         CompanyAddress.objects.get_or_create(
@@ -172,19 +189,39 @@ class Command(BaseCommand):
 
         # 4. Fabric Categories & Types
         cat_knit, _ = FabricCategory.objects.get_or_create(
-            name="Knit Fabrics", defaults={"slug": "knit-fabrics", "description": "Export single jersey, rib knits, french terry, fleece, and pima cottons."}
+            name="Knit Fabrics",
+            defaults={
+                "slug": "knit-fabrics",
+                "description": "Export single jersey, rib knits, french terry, fleece, and pima cottons.",
+            },
         )
         cat_woven, _ = FabricCategory.objects.get_or_create(
-            name="Woven Fabrics", defaults={"slug": "woven-fabrics", "description": "High-thread-count poplin, linen weaves, twills, and chambray."}
+            name="Woven Fabrics",
+            defaults={
+                "slug": "woven-fabrics",
+                "description": "High-thread-count poplin, linen weaves, twills, and chambray.",
+            },
         )
         cat_denim, _ = FabricCategory.objects.get_or_create(
-            name="Denim & Twill", defaults={"slug": "denim-twill", "description": "Shuttle loom selvedge denim, stretch denim, ring spun, and heavy twills."}
+            name="Denim & Twill",
+            defaults={
+                "slug": "denim-twill",
+                "description": "Shuttle loom selvedge denim, stretch denim, ring spun, and heavy twills.",
+            },
         )
         cat_silk, _ = FabricCategory.objects.get_or_create(
-            name="Luxury & Silk", defaults={"slug": "luxury-silk", "description": "Mulberry silk georgette, satin charmeuse, velvet, and royal damask brocades."}
+            name="Luxury & Silk",
+            defaults={
+                "slug": "luxury-silk",
+                "description": "Mulberry silk georgette, satin charmeuse, velvet, and royal damask brocades.",
+            },
         )
         cat_eco, _ = FabricCategory.objects.get_or_create(
-            name="Sustainable & Eco-Conscious", defaults={"slug": "eco-conscious-organic", "description": "GOTS-certified organic cotton, bamboo lyocell, and recycled blends."}
+            name="Sustainable & Eco-Conscious",
+            defaults={
+                "slug": "eco-conscious-organic",
+                "description": "GOTS-certified organic cotton, bamboo lyocell, and recycled blends.",
+            },
         )
 
         type_jersey, _ = FabricType.objects.get_or_create(
@@ -540,7 +577,7 @@ class Command(BaseCommand):
 
             # Seed images
             for idx, img_url in enumerate(images):
-                is_pri = (idx == 0)
+                is_pri = idx == 0
                 img_obj, img_created = FabricRollImage.objects.get_or_create(
                     fabric_roll=roll,
                     sort_order=idx,
@@ -558,5 +595,8 @@ class Command(BaseCommand):
                 img.image_url = "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=1000&q=80"
                 img.save()
 
-        self.stdout.write(self.style.SUCCESS(f"Successfully seeded {len(rolls_data)} Dami fabric profiles with verified textile imagery!"))
-
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Successfully seeded {len(rolls_data)} Dami fabric profiles with verified textile imagery!"
+            )
+        )

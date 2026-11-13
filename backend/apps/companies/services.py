@@ -5,7 +5,7 @@ from django.db import transaction
 
 from common.exceptions import DomainException, NotFoundError
 
-from .models import Company, CompanyAddress, VerificationStatusChoices
+from .models import Company, CompanyAddress, CreditStatusChoices, VerificationStatusChoices
 
 
 @transaction.atomic
@@ -46,6 +46,13 @@ def verify_company(
             company.credit_limit = credit_limit
         if credit_terms_days is not None:
             company.credit_terms_days = credit_terms_days
+        # A credit limit is only usable once the credit line is active.
+        if company.credit_status != CreditStatusChoices.BLOCKED:
+            company.credit_status = (
+                CreditStatusChoices.ACTIVE
+                if company.credit_limit and company.credit_limit > 0
+                else CreditStatusChoices.INELIGIBLE
+            )
     elif action == "REJECT":
         company.verification_status = VerificationStatusChoices.REJECTED
         company.rejection_reason = rejection_reason or "Document verification failed."
@@ -54,6 +61,10 @@ def verify_company(
         company.rejection_reason = rejection_reason or "Account suspended by administrator."
     else:
         raise DomainException(f"Unsupported verification action: {action}")
+
+    if action in ("REJECT", "SUSPEND") and company.user.is_verified:
+        company.user.is_verified = False
+        company.user.save(update_fields=["is_verified"])
 
     company.save()
     return company

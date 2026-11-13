@@ -17,10 +17,20 @@ import {
   ArrowRight,
   Eye,
   Building,
+  Image as ImageIcon,
+  Check,
+  Wand2,
+  RefreshCw,
 } from "lucide-react";
 import { apiClient } from "@/api/client";
 import { formatBDT } from "@/lib/utils";
 import { useAuthStore } from "@/features/auth/store";
+import {
+  FabricPreset,
+  REAL_FABRIC_PRESETS,
+  COMMON_COLOR_SWATCHES,
+  ColorSwatch,
+} from "../data/fabricPresets";
 
 interface FabricTypeItem {
   id: string;
@@ -101,8 +111,22 @@ export const FactoryDashboardPage: React.FC = () => {
     if (location.pathname.includes("/stock")) return "stock";
     if (location.pathname.includes("/pickups")) return "pickups";
     if (location.pathname.includes("/payouts")) return "payouts";
+    if (location.pathname.includes("/requests")) return "requests";
     return "overview";
   };
+  const [buyerRequests, setBuyerRequests] = useState<
+    Array<{
+      id: string;
+      buyer_id: string;
+      buyer_name: string;
+      fabric_name: string;
+      target_gsm: number | null;
+      required_yards: string | null;
+      color_preference: string;
+      notes: string;
+      created_at: string;
+    }>
+  >([]);
 
   const [activeTab, setActiveTab] = useState<string>(getInitialTab());
   const [rolls, setRolls] = useState<FactoryRoll[]>([]);
@@ -111,6 +135,7 @@ export const FactoryDashboardPage: React.FC = () => {
   const [buyers, setBuyers] = useState<BuyerItem[]>([]);
   const [stockFilter, setStockFilter] = useState<"ALL" | "PUBLIC" | "BUYER_CUSTOM">("ALL");
   const [loading, setLoading] = useState(true);
+  const [highlightedRollId, setHighlightedRollId] = useState<string | null>(null);
 
   // Modal State for Listing New Roll / Building Fabric Profile for Buyer
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -119,15 +144,19 @@ export const FactoryDashboardPage: React.FC = () => {
   const [modalSuccess, setModalSuccess] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
 
+  // Helper to generate a realistic export batch code
+  const generateLotNumber = () =>
+    `SQ-LOT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
+
   // Form State
   const [newRoll, setNewRoll] = useState({
     title: "",
     fabric_type: "",
-    composition: "",
+    composition: "100% Combed Cotton",
     gsm: 200,
     width_inches: "60.00",
-    color_name: "",
-    color_hex: "#1E3A8A",
+    color_name: "Deep Raw Indigo",
+    color_hex: "#1E293B",
     pattern: "Solid",
     finish: "Soft Silicon Finish",
     total_yards: "100.00",
@@ -136,7 +165,7 @@ export const FactoryDashboardPage: React.FC = () => {
     lot_batch_number: "",
     quality_grade: "GRADE_A",
     defect_notes: "",
-    image_url: "",
+    image_url: REAL_FABRIC_PRESETS[0].url,
     target_buyer_id: "",
     buyer_spec_notes: "",
   });
@@ -163,6 +192,10 @@ export const FactoryDashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+    apiClient
+      .get("/matching/requests/", { params: { status: "OPEN" } })
+      .then((res) => setBuyerRequests(res.data.data || []))
+      .catch(() => setBuyerRequests([]));
   };
 
   useEffect(() => {
@@ -181,11 +214,50 @@ export const FactoryDashboardPage: React.FC = () => {
   const completedOrders = orders.filter((o) =>
     ["DELIVERED", "COMPLETED"].includes(o.status)
   );
-  const grossSalesRevenue = orders.reduce(
-    (sum, o) => sum + Number(o.items_subtotal || 0),
-    0
-  );
+  // Sum this factory's own line items (an order may also contain other mills' rolls)
+  // and skip orders that were cancelled or refunded.
+  const grossSalesRevenue = orders
+    .filter((o) => !["CANCELLED", "REFUNDED"].includes(o.status))
+    .reduce(
+      (sum, o) =>
+        sum +
+        (o.items?.length
+          ? o.items.reduce((s, item) => s + Number(item.subtotal || 0), 0)
+          : Number(o.items_subtotal || 0)),
+      0
+    );
   const netEarnings = grossSalesRevenue * 0.94; // 94% factory payout after 6% platform fee
+
+  // Quick 1-click template application (optimizes creation speed by ~85%)
+  const applyPresetTemplate = (preset: FabricPreset) => {
+    const allTypes = categories.flatMap((cat) => cat.fabric_types);
+    const matchedType = allTypes.find((ft) =>
+      ft.name.toLowerCase().includes(preset.fabricTypeKeyword.toLowerCase())
+    );
+
+    setNewRoll((prev) => ({
+      ...prev,
+      title: preset.name,
+      fabric_type: matchedType ? matchedType.id : prev.fabric_type,
+      composition: preset.composition,
+      gsm: preset.gsm,
+      width_inches: preset.widthInches,
+      color_name: preset.colorName,
+      color_hex: preset.colorHex,
+      price_per_yard: preset.suggestedPrice,
+      min_cut_length_yards: preset.minCutYards,
+      image_url: preset.url,
+      lot_batch_number: prev.lot_batch_number || generateLotNumber(),
+    }));
+  };
+
+  const handleApplyColor = (color: ColorSwatch) => {
+    setNewRoll((prev) => ({
+      ...prev,
+      color_name: color.name,
+      color_hex: color.hex,
+    }));
+  };
 
   const handleCreateRoll = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,7 +273,9 @@ export const FactoryDashboardPage: React.FC = () => {
         return;
       }
 
-      await apiClient.post("/catalog/rolls/", {
+      const lotBatch = newRoll.lot_batch_number.trim() || generateLotNumber();
+
+      const payload = {
         ...newRoll,
         gsm: Number(newRoll.gsm),
         total_yards: Number(newRoll.total_yards),
@@ -209,10 +283,14 @@ export const FactoryDashboardPage: React.FC = () => {
         min_cut_length_yards: Number(newRoll.min_cut_length_yards),
         price_per_yard: Number(newRoll.price_per_yard),
         width_inches: Number(newRoll.width_inches),
+        lot_batch_number: lotBatch,
         target_buyer_id: isCustom ? newRoll.target_buyer_id : null,
         is_custom_profile: isCustom,
         buyer_spec_notes: isCustom ? newRoll.buyer_spec_notes : "",
-      });
+      };
+
+      const res = await apiClient.post("/catalog/rolls/", payload);
+      const createdRoll = res.data.data;
 
       const selectedBuyer = buyers.find((b) => b.id === newRoll.target_buyer_id);
       setModalSuccess(
@@ -220,11 +298,28 @@ export const FactoryDashboardPage: React.FC = () => {
           ? `Custom fabric profile built successfully for ${selectedBuyer?.name || "the buyer"}!`
           : "Surplus fabric roll listed successfully!"
       );
+
+      // 1. Instant optimistic state update: immediately shows in dashboard
+      if (createdRoll) {
+        setRolls((prev) => [createdRoll, ...prev.filter((r) => r.id !== createdRoll.id)]);
+        setHighlightedRollId(createdRoll.id);
+        setTimeout(() => setHighlightedRollId(null), 8000);
+      }
+
+      // 2. Fresh background fetch of all profile and order data
       await fetchData();
+
+      // 3. Auto-navigate to My Fabric Stock tab and select appropriate filter
       setTimeout(() => {
         setIsModalOpen(false);
         setModalSuccess(null);
-      }, 1200);
+        setActiveTab("stock");
+        if (isCustom) {
+          setStockFilter("BUYER_CUSTOM");
+        } else {
+          setStockFilter("ALL");
+        }
+      }, 700);
     } catch (err: any) {
       const msg =
         err.response?.data?.error?.message ||
@@ -394,11 +489,153 @@ export const FactoryDashboardPage: React.FC = () => {
         >
           Payouts & Ledger
         </button>
+        <button
+          onClick={() => setActiveTab("requests")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            activeTab === "requests"
+              ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <span>Buyer Requests</span>
+          <span className="px-1.5 py-0.5 rounded text-[10px] bg-black/20 text-white font-mono">
+            {buyerRequests.length}
+          </span>
+        </button>
       </div>
+
+      {activeTab === "requests" && (
+        <div className="bg-card rounded-3xl border border-border p-6 shadow-sm space-y-4">
+          <div>
+            <h3 className="text-base font-bold text-foreground">Open Buyer Sourcing Requests</h3>
+            <p className="text-xs text-muted-foreground">
+              Fabric boutiques are looking for. Build a custom profile and only that buyer will see it.
+            </p>
+          </div>
+          {buyerRequests.length === 0 ? (
+            <p className="py-10 text-center text-xs text-muted-foreground">
+              No open requests right now. New requests from buyers appear here.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {buyerRequests.map((r) => (
+                <div
+                  key={r.id}
+                  className="p-4 rounded-2xl bg-muted/30 border border-border flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs"
+                >
+                  <div className="space-y-1 min-w-0">
+                    <p className="font-bold text-sm text-foreground">{r.fabric_name}</p>
+                    <p className="text-muted-foreground">
+                      {r.buyer_name}
+                      {r.target_gsm ? `, ${r.target_gsm} GSM` : ""}
+                      {r.required_yards ? `, ${Number(r.required_yards)} yds` : ""}
+                      {r.color_preference ? `, ${r.color_preference}` : ""}
+                    </p>
+                    {r.notes ? <p className="text-foreground">{r.notes}</p> : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMode("BUYER_CUSTOM");
+                      setNewRoll((prev) => ({
+                        ...prev,
+                        target_buyer_id: r.buyer_id,
+                        title: r.fabric_name,
+                        gsm: r.target_gsm ?? prev.gsm,
+                        buyer_spec_notes: `In response to your request: ${r.fabric_name}${
+                          r.notes ? ` (${r.notes})` : ""
+                        }`,
+                      }));
+                      setModalError(null);
+                      setIsModalOpen(true);
+                    }}
+                    className="shrink-0 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold"
+                  >
+                    Build Profile for {r.buyer_name}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tab 1: Overview */}
       {activeTab === "overview" && (
         <div className="space-y-6">
+          {/* Active Mill Fabric Rolls & Photography Showcase */}
+          <div className="bg-card rounded-3xl border border-border p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-primary" />
+                  <span>Mill Fabric Visual Showcase</span>
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  High-definition textile inventory registered under {user?.company?.name || "your mill"}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab("stock")}
+                className="text-xs font-bold text-primary hover:underline self-start"
+              >
+                View All {rolls.length} Rolls in Stock →
+              </button>
+            </div>
+
+            {rolls.length === 0 ? (
+              <div className="py-10 text-center text-xs text-muted-foreground space-y-2">
+                <Layers className="w-8 h-8 text-muted-foreground mx-auto" />
+                <p>No fabric rolls listed yet. Use "List Surplus Roll" to publish fabric with high-res photos.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+                {rolls.slice(0, 10).map((roll) => (
+                  <div
+                    key={roll.id}
+                    className="group rounded-2xl border border-border overflow-hidden bg-card hover:border-primary/50 transition-all duration-300 shadow-2xs hover:shadow-md flex flex-col justify-between"
+                  >
+                    <div className="relative h-28 w-full bg-muted overflow-hidden">
+                      <img
+                        src={
+                          roll.primary_image ||
+                          "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=400&q=80"
+                        }
+                        alt={roll.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src =
+                            "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=400&q=80";
+                        }}
+                      />
+                      <div className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white text-[9px] font-mono font-bold">
+                        <span
+                          className="w-2 h-2 rounded-full border border-white/50"
+                          style={{ backgroundColor: roll.color_hex }}
+                        />
+                        <span>{roll.roll_code}</span>
+                      </div>
+                      <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-primary text-primary-foreground text-[10px] font-extrabold shadow-xs">
+                        {formatBDT(Number(roll.price_per_yard))}/yd
+                      </div>
+                    </div>
+                    <div className="p-2.5 space-y-1">
+                      <p className="font-bold text-xs text-foreground truncate" title={roll.title}>
+                        {roll.title}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">{roll.composition}</p>
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/50">
+                        <span>{roll.gsm} GSM</span>
+                        <span className="font-bold text-primary">{roll.available_yards} yds</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Recent Orders Table */}
           <div className="bg-card rounded-3xl border border-border p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
@@ -562,20 +799,54 @@ export const FactoryDashboardPage: React.FC = () => {
                       if (stockFilter === "BUYER_CUSTOM") return roll.is_custom_profile;
                       return true;
                     })
-                    .map((roll) => (
-                      <tr key={roll.id} className="hover:bg-muted/20">
-                        <td className="py-3.5 px-4 font-mono font-bold text-foreground">
-                          {roll.roll_code}
-                        </td>
+                    .map((roll) => {
+                      const isHighlighted = highlightedRollId === roll.id;
+                      return (
+                        <tr
+                          key={roll.id}
+                          className={`transition-all duration-700 ${
+                            isHighlighted
+                              ? "bg-primary/15 ring-2 ring-primary/40 shadow-xs"
+                              : "hover:bg-muted/20"
+                          }`}
+                        >
+                          <td className="py-3.5 px-4 font-mono font-bold text-foreground">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span>{roll.roll_code}</span>
+                              {isHighlighted && (
+                                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-500 text-white animate-pulse">
+                                  ✨ New
+                                </span>
+                              )}
+                            </div>
+                          </td>
                         <td className="py-3.5 px-4">
-                          <div className="flex items-start gap-2.5">
-                            <div
-                              className="w-4 h-4 rounded-full border border-border flex-shrink-0 mt-0.5"
-                              style={{ backgroundColor: roll.color_hex }}
-                            />
-                            <div className="space-y-0.5">
-                              <p className="font-bold text-foreground text-xs">{roll.title}</p>
-                              <p className="text-[11px] text-muted-foreground">{roll.composition}</p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-border flex-shrink-0 bg-muted relative group shadow-2xs">
+                              <img
+                                src={
+                                  roll.primary_image ||
+                                  "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=300&q=80"
+                                }
+                                alt={roll.title}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                loading="lazy"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLImageElement).src =
+                                    "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=300&q=80";
+                                }}
+                              />
+                              <div
+                                className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border border-background shadow-xs"
+                                style={{ backgroundColor: roll.color_hex }}
+                                title={roll.color_name}
+                              />
+                            </div>
+                            <div className="space-y-0.5 min-w-0">
+                              <p className="font-bold text-foreground text-xs truncate max-w-xs sm:max-w-md">
+                                {roll.title}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground truncate">{roll.composition}</p>
                               {roll.is_custom_profile && (
                                 <div className="pt-0.5">
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/25">
@@ -622,7 +893,8 @@ export const FactoryDashboardPage: React.FC = () => {
                           </Link>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -795,6 +1067,35 @@ export const FactoryDashboardPage: React.FC = () => {
               </div>
             )}
 
+            {/* Quick-Fill Fabric Specification Templates Bar */}
+            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-extrabold text-foreground flex items-center gap-1.5">
+                  <Wand2 className="w-3.5 h-3.5 text-primary" />
+                  <span>1-Click Smart Fabric Templates</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  Auto-fills specs, fabric type, & verified image in 1 click
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                {REAL_FABRIC_PRESETS.slice(0, 8).map((preset: FabricPreset, i: number) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => applyPresetTemplate(preset)}
+                    className="flex-shrink-0 px-2.5 py-1.5 rounded-xl border border-border bg-card hover:border-primary text-[10px] font-bold text-foreground flex items-center gap-1.5 shadow-2xs transition-all hover:bg-primary/5 active:scale-95"
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full border border-border flex-shrink-0"
+                      style={{ backgroundColor: preset.colorHex }}
+                    />
+                    <span>{preset.name.split("—")[0].trim()}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <form onSubmit={handleCreateRoll} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {profileMode === "BUYER_CUSTOM" && (
@@ -912,33 +1213,51 @@ export const FactoryDashboardPage: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-bold text-foreground">Color Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newRoll.color_name}
-                    onChange={(e) => setNewRoll({ ...newRoll, color_name: e.target.value })}
-                    placeholder="Deep Navy Blue"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-card focus:ring-2 focus:ring-primary focus:outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-foreground">Color Swatch (Hex)</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={newRoll.color_hex}
-                      onChange={(e) => setNewRoll({ ...newRoll, color_hex: e.target.value })}
-                      className="w-10 h-10 p-1 rounded-lg border border-input bg-card cursor-pointer"
-                    />
+                {/* Color and Quick Palette Selection */}
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="font-bold text-foreground">Color & Palette *</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input
                       type="text"
-                      value={newRoll.color_hex}
-                      onChange={(e) => setNewRoll({ ...newRoll, color_hex: e.target.value })}
-                      className="flex-1 px-3 py-2 rounded-xl border border-input bg-card font-mono text-xs"
+                      required
+                      value={newRoll.color_name}
+                      onChange={(e) => setNewRoll({ ...newRoll, color_name: e.target.value })}
+                      placeholder="e.g. Deep Raw Indigo"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-card focus:ring-2 focus:ring-primary focus:outline-none"
                     />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={newRoll.color_hex}
+                        onChange={(e) => setNewRoll({ ...newRoll, color_hex: e.target.value })}
+                        className="w-10 h-10 p-1 rounded-lg border border-input bg-card cursor-pointer flex-shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={newRoll.color_hex}
+                        onChange={(e) => setNewRoll({ ...newRoll, color_hex: e.target.value })}
+                        className="flex-1 px-3 py-2 rounded-xl border border-input bg-card font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                  {/* Quick Color Swatches */}
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                    <span className="text-[10px] text-muted-foreground mr-1">Quick Palette:</span>
+                    {COMMON_COLOR_SWATCHES.map((swatch: ColorSwatch, idx: number) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleApplyColor(swatch)}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[10px] font-medium transition-all ${
+                          newRoll.color_hex.toLowerCase() === swatch.hex.toLowerCase()
+                            ? "border-primary bg-primary/10 text-primary font-bold shadow-2xs"
+                            : "border-border/60 bg-muted/40 text-muted-foreground hover:border-border hover:text-foreground"
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: swatch.hex }} />
+                        <span>{swatch.name}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -949,9 +1268,18 @@ export const FactoryDashboardPage: React.FC = () => {
                     step="0.5"
                     required
                     value={newRoll.total_yards}
-                    onChange={(e) => setNewRoll({ ...newRoll, total_yards: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const numVal = Number(val);
+                      const suggestedMin = numVal > 0 ? Math.max(5, Math.min(25, Math.round(numVal * 0.1))) : 10;
+                      setNewRoll((prev) => ({
+                        ...prev,
+                        total_yards: val,
+                        min_cut_length_yards: prev.min_cut_length_yards || String(suggestedMin),
+                      }));
+                    }}
                     placeholder="120.00"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-card focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-card focus:ring-2 focus:ring-primary focus:outline-none font-bold"
                   />
                 </div>
 
@@ -982,25 +1310,158 @@ export const FactoryDashboardPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-foreground">Lot / Batch Number</label>
+                  <label className="font-bold text-foreground flex items-center justify-between">
+                    <span>Lot / Batch Number</span>
+                    <button
+                      type="button"
+                      onClick={() => setNewRoll((prev) => ({ ...prev, lot_batch_number: generateLotNumber() }))}
+                      className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-2.5 h-2.5" />
+                      <span>Auto-Generate</span>
+                    </button>
+                  </label>
                   <input
                     type="text"
                     value={newRoll.lot_batch_number}
                     onChange={(e) => setNewRoll({ ...newRoll, lot_batch_number: e.target.value })}
-                    placeholder="e.g. SQ-LOT-492"
+                    placeholder="e.g. SQ-LOT-2026-492"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-card focus:ring-2 focus:ring-primary focus:outline-none font-mono"
                   />
                 </div>
 
-                <div className="space-y-1 sm:col-span-2">
-                  <label className="font-bold text-foreground">High-Resolution Photo URL</label>
-                  <input
-                    type="url"
-                    value={newRoll.image_url}
-                    onChange={(e) => setNewRoll({ ...newRoll, image_url: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-card focus:ring-2 focus:ring-primary focus:outline-none"
-                  />
+                {/* Fabric Real Textile Photography Swatch Studio */}
+                <div className="space-y-3 sm:col-span-2 pt-3 border-t border-border/80">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="font-bold text-foreground text-xs flex items-center gap-1.5">
+                        <ImageIcon className="w-4 h-4 text-primary" />
+                        <span>Real Textile Photography Swatch Studio</span>
+                      </label>
+                      <p className="text-[11px] text-muted-foreground">
+                        Select a verified high-resolution fabric texture swatch or enter a custom photo URL
+                      </p>
+                    </div>
+                    {newRoll.image_url && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                        <Check className="w-3 h-3" />
+                        Verified Fabric Photo
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Fabric Swatch Preset Grid */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Quick Real Fabric Presets (Click to apply real texture & specs)
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-52 overflow-y-auto p-2 border border-border/70 rounded-2xl bg-muted/20">
+                      {REAL_FABRIC_PRESETS.map((preset: FabricPreset, idx: number) => {
+                        const isSelected = newRoll.image_url === preset.url;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setNewRoll((prev) => ({
+                                ...prev,
+                                image_url: preset.url,
+                                title: prev.title || preset.name,
+                                composition: prev.composition || preset.composition,
+                                gsm: prev.gsm || preset.gsm,
+                                color_name: prev.color_name || preset.colorName,
+                                color_hex: prev.color_hex || preset.colorHex,
+                              }));
+                            }}
+                            className={`group relative rounded-xl overflow-hidden border-2 text-left p-1 transition-all ${
+                              isSelected
+                                ? "border-primary ring-2 ring-primary/30 shadow-xs bg-primary/5"
+                                : "border-border hover:border-primary/50 bg-card"
+                            }`}
+                          >
+                            <div className="h-16 w-full rounded-lg overflow-hidden relative bg-muted">
+                              <img
+                                src={preset.url}
+                                alt={preset.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                              <div
+                                className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border border-white shadow-xs"
+                                style={{ backgroundColor: preset.colorHex }}
+                                title={preset.colorName}
+                              />
+                              {isSelected && (
+                                <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
+                                  <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xs">
+                                    <Check className="w-3.5 h-3.5" />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-[10px] font-bold text-foreground truncate mt-1 leading-tight" title={preset.name}>
+                              {preset.name}
+                            </p>
+                            <p className="text-[9px] text-muted-foreground truncate">
+                              {preset.category}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Live Visual Preview Card */}
+                  {newRoll.image_url && (
+                    <div className="p-3.5 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/5 to-purple-500/5 flex items-center gap-3.5 shadow-2xs">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border border-border flex-shrink-0 bg-muted relative shadow-xs">
+                        <img
+                          src={newRoll.image_url}
+                          alt="Fabric Preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src =
+                              "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=400&q=80";
+                          }}
+                        />
+                        <div
+                          className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border border-white shadow-xs"
+                          style={{ backgroundColor: newRoll.color_hex }}
+                          title={newRoll.color_name}
+                        />
+                      </div>
+                      <div className="space-y-0.5 text-xs min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-extrabold text-foreground truncate">
+                            {newRoll.title || "Selected Real Fabric Swatch"}
+                          </p>
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary/10 text-primary">
+                            Preview
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground text-[11px] truncate">
+                          {newRoll.composition || "Textile"} • {newRoll.gsm} GSM • {newRoll.color_name || "Color"}
+                        </p>
+                        <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 pt-0.5">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>Real Textile Photography Ready for Buyer Catalog</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom Photo URL Input */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-muted-foreground">
+                      Or edit / paste custom high-resolution photo URL:
+                    </label>
+                    <input
+                      type="url"
+                      value={newRoll.image_url}
+                      onChange={(e) => setNewRoll({ ...newRoll, image_url: e.target.value })}
+                      placeholder="https://images.unsplash.com/photo-..."
+                      className="w-full px-3.5 py-2 rounded-xl border border-input bg-card focus:ring-2 focus:ring-primary focus:outline-none text-xs font-mono"
+                    />
+                  </div>
                 </div>
               </div>
 

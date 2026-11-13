@@ -19,11 +19,33 @@ import { apiClient } from "@/api/client";
 import { formatBDT } from "@/lib/utils";
 import { useAuthStore } from "@/features/auth/store";
 
+interface SourcingRequestData {
+  id: string;
+  fabric_name: string;
+  target_gsm: number | null;
+  required_yards: string | null;
+  color_preference: string;
+  notes: string;
+  status: "OPEN" | "FULFILLED" | "CLOSED";
+  created_at: string;
+}
+
+interface CreditSummary {
+  credit_limit: string;
+  outstanding: string;
+  available: string;
+  credit_terms_days: number;
+  credit_status: string;
+  can_use_credit: boolean;
+}
+
 interface OrderItem {
   id: string;
   roll_code: string;
   roll_title: string;
   color_name: string;
+  color_hex?: string;
+  primary_image?: string;
   requested_yards: string | number;
   unit_price: string | number;
   subtotal: string | number;
@@ -107,6 +129,10 @@ export const BuyerOrdersPage: React.FC = () => {
     notes: "",
   });
   const [requestSubmitted, setRequestSubmitted] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [myRequests, setMyRequests] = useState<SourcingRequestData[]>([]);
+  const [credit, setCredit] = useState<CreditSummary | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -122,6 +148,15 @@ export const BuyerOrdersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+    // Secondary panels load independently so one failure doesn't blank the page.
+    apiClient
+      .get("/matching/requests/")
+      .then((res) => setMyRequests(res.data.data || []))
+      .catch(() => setMyRequests([]));
+    apiClient
+      .get("/orders/credit/")
+      .then((res) => setCredit(res.data.data))
+      .catch(() => setCredit(null));
   };
 
   useEffect(() => {
@@ -129,10 +164,20 @@ export const BuyerOrdersPage: React.FC = () => {
     fetchOrders();
   }, [location.pathname]);
 
-  const handleSourcingSubmit = (e: React.FormEvent) => {
+  const handleSourcingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRequestSubmitted(true);
-    setTimeout(() => {
+    setRequestError(null);
+    setIsSubmittingRequest(true);
+    try {
+      const res = await apiClient.post("/matching/requests/", {
+        fabric_name: sourcingRequest.fabric_name,
+        target_gsm: sourcingRequest.target_gsm ? Number(sourcingRequest.target_gsm) : null,
+        required_yards: sourcingRequest.required_yards || null,
+        color_preference: sourcingRequest.color_preference,
+        notes: sourcingRequest.notes,
+      });
+      setMyRequests((prev) => [res.data.data, ...prev]);
+      setRequestSubmitted(true);
       setSourcingRequest({
         fabric_name: "",
         target_gsm: "180",
@@ -140,8 +185,21 @@ export const BuyerOrdersPage: React.FC = () => {
         color_preference: "",
         notes: "",
       });
-      setRequestSubmitted(false);
-    }, 4000);
+      setTimeout(() => setRequestSubmitted(false), 4000);
+    } catch (err: any) {
+      setRequestError(err.response?.data?.error?.message || "Couldn't post your request. Try again.");
+    } finally {
+      setIsSubmittingRequest(false);
+    }
+  };
+
+  const handleCloseRequest = async (id: string) => {
+    try {
+      const res = await apiClient.post(`/matching/requests/${id}/close/`, {});
+      setMyRequests((prev) => prev.map((r) => (r.id === id ? res.data.data : r)));
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || "Couldn't close this request.");
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -192,9 +250,10 @@ export const BuyerOrdersPage: React.FC = () => {
     }
   };
 
-  const creditLimitNum = Number(user?.company?.credit_limit || 50000);
-  const totalSpent = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
-  const availableCredit = Math.max(0, creditLimitNum - totalSpent);
+  // Server-computed: only unsettled B2B-credit orders count against the limit.
+  const creditLimitNum = Number(credit?.credit_limit ?? user?.company?.credit_limit ?? 0);
+  const availableCredit = Number(credit?.available ?? 0);
+  const creditTerms = credit?.credit_terms_days || 30;
 
   return (
     <div className="space-y-8">
@@ -355,6 +414,32 @@ export const BuyerOrdersPage: React.FC = () => {
                       <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-bold">
                         {profile.roll_code}
                       </span>
+                    </div>
+
+                    {/* Real Fabric Image Banner */}
+                    <div className="h-36 w-full rounded-2xl overflow-hidden relative bg-muted shadow-2xs">
+                      <img
+                        src={
+                          profile.primary_image ||
+                          "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=600&q=80"
+                        }
+                        alt={profile.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src =
+                            "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=600&q=80";
+                        }}
+                      />
+                      <div className="absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px]">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full border border-white"
+                          style={{ backgroundColor: profile.color_hex }}
+                        />
+                        <span>{profile.color_name}</span>
+                      </div>
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-lg bg-purple-600 text-white text-[10px] font-bold shadow-xs">
+                        {formatBDT(Number(profile.price_per_yard))}/yd
+                      </div>
                     </div>
 
                     {/* Title & Type */}
@@ -533,11 +618,19 @@ export const BuyerOrdersPage: React.FC = () => {
                       <div className="divide-y divide-border/60">
                         {order.items.map((item) => (
                           <div key={item.id} className="py-3 flex items-center justify-between text-xs">
-                            <div className="space-y-0.5">
-                              <p className="font-bold text-foreground text-sm">{item.roll_title}</p>
-                              <p className="text-muted-foreground font-mono">
-                                Roll Code: {item.roll_code} • Color: {item.color_name}
-                              </p>
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="w-10 h-10 rounded-xl border border-border flex-shrink-0 flex items-center justify-center shadow-2xs font-mono text-[10px] font-bold text-white drop-shadow-xs"
+                                style={{ backgroundColor: item.color_hex || "#334155" }}
+                              >
+                                {item.roll_code.slice(-3)}
+                              </div>
+                              <div className="space-y-0.5">
+                                <p className="font-bold text-foreground text-sm">{item.roll_title}</p>
+                                <p className="text-muted-foreground font-mono">
+                                  Roll Code: {item.roll_code} • Color: {item.color_name}
+                                </p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="font-extrabold text-foreground text-sm">
@@ -659,18 +752,30 @@ export const BuyerOrdersPage: React.FC = () => {
             <div className="p-5 rounded-2xl bg-muted/40 border border-border space-y-1 text-xs">
               <p className="text-muted-foreground font-semibold">Approved Credit Limit</p>
               <p className="text-2xl font-extrabold text-foreground">{formatBDT(creditLimitNum)}</p>
-              <p className="text-[11px] text-emerald-600 font-semibold">Active & Audited</p>
+              <p
+                className={`text-[11px] font-semibold ${
+                  credit?.can_use_credit ? "text-emerald-600" : "text-muted-foreground"
+                }`}
+              >
+                {creditLimitNum > 0
+                  ? credit?.can_use_credit
+                    ? "Active"
+                    : "Limit reached"
+                  : "No credit line yet. Ask FabriLink to review your account."}
+              </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-muted/40 border border-border space-y-1 text-xs">
-              <p className="text-muted-foreground font-semibold">Available Sourcing Balance</p>
+              <p className="text-muted-foreground font-semibold">Available to Spend</p>
               <p className="text-2xl font-extrabold text-primary">{formatBDT(availableCredit)}</p>
-              <p className="text-[11px] text-muted-foreground">Ready for next checkout</p>
+              <p className="text-[11px] text-muted-foreground">
+                {formatBDT(Number(credit?.outstanding ?? 0))} owed on unsettled credit orders
+              </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-muted/40 border border-border space-y-1 text-xs">
               <p className="text-muted-foreground font-semibold">Payment Terms</p>
-              <p className="text-2xl font-extrabold text-foreground">Net 30 Days</p>
+              <p className="text-2xl font-extrabold text-foreground">Net {creditTerms} Days</p>
               <p className="text-[11px] text-muted-foreground">Interest-free trade credit</p>
             </div>
           </div>
@@ -703,7 +808,13 @@ export const BuyerOrdersPage: React.FC = () => {
           {requestSubmitted && (
             <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-semibold flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
-              <span>Your fabric sourcing request has been broadcasted to 42 verified RMG mills!</span>
+              <span>Request posted. Verified mills can now see it and build a fabric profile for you.</span>
+            </div>
+          )}
+          {requestError && (
+            <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              <span>{requestError}</span>
             </div>
           )}
 
@@ -768,11 +879,61 @@ export const BuyerOrdersPage: React.FC = () => {
 
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
+              disabled={isSubmittingRequest}
+              className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-60"
             >
-              Broadcast Sourcing Request to Mills
+              {isSubmittingRequest ? "Posting…" : "Post Request to Mills"}
             </button>
           </form>
+
+          <div className="space-y-3 pt-2">
+            <h4 className="text-sm font-bold text-foreground">Your Requests</h4>
+            {myRequests.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                You haven't posted any requests yet. Requests you post appear here.
+              </p>
+            ) : (
+              myRequests.map((r) => (
+                <div
+                  key={r.id}
+                  className="p-4 rounded-2xl bg-muted/30 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                >
+                  <div className="space-y-1 min-w-0">
+                    <p className="font-bold text-sm text-foreground truncate">{r.fabric_name}</p>
+                    <p className="text-muted-foreground">
+                      {[
+                        r.target_gsm ? `${r.target_gsm} GSM` : null,
+                        r.required_yards ? `${Number(r.required_yards)} yds` : null,
+                        r.color_preference || null,
+                      ]
+                        .filter(Boolean)
+                        .join(", ") || "No extra specs"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                        r.status === "OPEN"
+                          ? "bg-emerald-500/10 text-emerald-600"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {r.status === "OPEN" ? "Open" : r.status === "FULFILLED" ? "Fulfilled" : "Closed"}
+                    </span>
+                    {r.status === "OPEN" && (
+                      <button
+                        type="button"
+                        onClick={() => handleCloseRequest(r.id)}
+                        className="px-3 py-1.5 rounded-lg border border-border font-semibold hover:bg-muted"
+                      >
+                        Close Request
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>

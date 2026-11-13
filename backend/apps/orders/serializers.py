@@ -1,6 +1,8 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
-from .models import CartItem, Order, OrderItem, OrderTrackingEvent
+from .models import CartItem, Order, OrderItem, OrderStatusChoices, OrderTrackingEvent
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -43,7 +45,9 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 class AddToCartSerializer(serializers.Serializer):
     fabric_roll_id = serializers.UUIDField()
-    requested_yards = serializers.DecimalField(max_digits=8, decimal_places=2)
+    requested_yards = serializers.DecimalField(
+        max_digits=8, decimal_places=2, min_value=Decimal("0.01")
+    )
 
 
 class CheckoutRequestSerializer(serializers.Serializer):
@@ -52,6 +56,18 @@ class CheckoutRequestSerializer(serializers.Serializer):
         default="BKASH",
     )
     delivery_notes = serializers.CharField(required=False, allow_blank=True)
+    item_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        required=False,
+        allow_empty=False,
+        help_text="Optional subset of cart item IDs to check out. Defaults to the whole cart.",
+    )
+
+
+class OrderStatusUpdateSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=OrderStatusChoices.choices)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+    location = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -109,6 +125,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             "currency",
             "payment_method",
             "delivery_notes",
+            "cancellation_reason",
             "items",
             "tracking_events",
             "created_at",

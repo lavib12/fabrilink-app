@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "FabriLink",
+    "slug": "fabrilink-mobile",
+    "scheme": "fabrilink",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fabrilink.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "FabriLink uses the camera to scan order barcodes at the cutting hub."
+      }
+    },
+    "android": {
+      "package": "com.fabrilink.mobile",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-secure-store",
+      "expo-image",
+      "expo-localization",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#17262B"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "FabriLink uses the camera to scan order barcodes at the cutting hub."
+        }
+      ],
+      "expo-font",
+      ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "3e6cb572-5fe3-4dba-9a31-2465059c09d5"
+      }
+    }
+  }
+}

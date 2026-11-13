@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { refreshAccessToken } from "@/api/client";
 import { authApi } from "@/features/auth/api";
 import { useAuthStore } from "@/features/auth/store";
 import "@/i18n";
@@ -14,53 +15,44 @@ const queryClient = new QueryClient({
   },
 });
 
-const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { setAuth, setInitialized, setAccessToken, clearAuth, accessToken } = useAuthStore();
+/**
+ * Restores the session once per page load. Shared as a module-level promise so that
+ * React StrictMode's double effect invocation doesn't trigger two refreshes.
+ */
+let restorePromise: Promise<void> | null = null;
 
-  useEffect(() => {
-    let mounted = true;
-
-    const restoreSession = async () => {
+const restoreSession = (): Promise<void> => {
+  if (!restorePromise) {
+    restorePromise = (async () => {
+      const store = useAuthStore.getState();
       try {
-        // If we have an existing accessToken from localStorage, try to fetch current user profile
-        if (accessToken) {
-          try {
-            const user = await authApi.getMe();
-            if (mounted) {
-              setAuth(user, accessToken);
-              setInitialized(true);
-              return;
-            }
-          } catch {
-            // Token expired or invalid, try refresh
-          }
+        // No persisted token: get one from the httpOnly refresh cookie first.
+        // With a persisted token, getMe() refreshes automatically on a 401.
+        if (!store.accessToken) {
+          await refreshAccessToken();
         }
-
-        const refreshData = await authApi.refreshToken();
-        if (refreshData?.access_token && mounted) {
-          setAccessToken(refreshData.access_token);
-          const user = await authApi.getMe();
-          if (mounted) {
-            setAuth(user, refreshData.access_token);
-          }
+        const user = await authApi.getMe();
+        const token = useAuthStore.getState().accessToken;
+        if (token) {
+          useAuthStore.getState().setAuth(user, token);
+        } else {
+          useAuthStore.getState().clearAuth();
         }
       } catch {
-        if (mounted && !accessToken) {
-          clearAuth();
-        }
+        // Don't leave a stale persisted user "logged in" with a dead token.
+        useAuthStore.getState().clearAuth();
       } finally {
-        if (mounted) {
-          setInitialized(true);
-        }
+        useAuthStore.getState().setInitialized(true);
       }
-    };
+    })();
+  }
+  return restorePromise;
+};
 
+const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useEffect(() => {
     restoreSession();
-
-    return () => {
-      mounted = false;
-    };
-  }, [setAuth, setInitialized, setAccessToken, clearAuth]);
+  }, []);
 
   return <>{children}</>;
 };

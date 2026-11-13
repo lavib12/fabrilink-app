@@ -40,7 +40,12 @@ export const LoginPage: React.FC = () => {
       setAuth(data.user, data.access_token);
 
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname;
-      if (from) {
+      const needsKyc =
+        (data.user.role === "FACTORY" || data.user.role === "BUYER") &&
+        data.user.company?.verification_status !== "APPROVED";
+      if (needsKyc) {
+        navigate("/approval-pending", { replace: true });
+      } else if (from) {
         navigate(from, { replace: true });
       } else if (data.user.role === "FACTORY") {
         navigate("/factory/dashboard", { replace: true });

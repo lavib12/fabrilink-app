@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from rest_framework import serializers
 
 from .models import Company, CompanyAddress
@@ -21,7 +22,8 @@ class CompanyAddressSerializer(serializers.ModelSerializer):
             "is_default",
             "created_at",
         ]
-        read_only_fields = ["id", "created_at"]
+        # `company` is always taken from the authenticated user, never from the payload.
+        read_only_fields = ["id", "company", "created_at"]
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -117,7 +119,7 @@ class FactoryStoreSerializer(serializers.ModelSerializer):
             is_deleted=False,
         )
         total_rolls = active_rolls.count()
-        total_yards = sum((float(r.available_yards or 0) for r in active_rolls), 0.0)
+        total_yards = float(active_rolls.aggregate(total=Sum("available_yards"))["total"] or 0)
         fabric_types_count = active_rolls.values("fabric_type").distinct().count()
 
         compositions = list(
@@ -142,4 +144,3 @@ class FactoryStoreSerializer(serializers.ModelSerializer):
             "compositions": compositions,
             "custom_profiles_count_for_you": custom_profiles_count,
         }
-

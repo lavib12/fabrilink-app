@@ -65,6 +65,7 @@ export const FabricDetailPage: React.FC = () => {
   const [roll, setRoll] = useState<FabricRollDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Roll Breakdown State
   const [requestedYards, setRequestedYards] = useState<number>(10);
@@ -175,15 +176,16 @@ export const FabricDetailPage: React.FC = () => {
     setIsCheckingOut(true);
     try {
       // 1. Add to cart first
-      await apiClient.post("/orders/cart/items/", {
+      const cartRes = await apiClient.post("/orders/cart/items/", {
         fabric_roll_id: roll.id,
         requested_yards: requestedYards,
       });
 
-      // 2. Execute checkout
+      // 2. Check out ONLY this item — other things already in the cart stay there.
       const res = await apiClient.post("/orders/checkout/", {
         payment_method: paymentMethod,
         delivery_notes: `Direct checkout for ${requestedYards} yds of ${roll.roll_code}`,
+        item_ids: [cartRes.data.data.id],
       });
 
       setShowCheckoutModal(false);
@@ -194,8 +196,6 @@ export const FabricDetailPage: React.FC = () => {
       setIsCheckingOut(false);
     }
   };
-
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const primaryImage =
     selectedImage ||

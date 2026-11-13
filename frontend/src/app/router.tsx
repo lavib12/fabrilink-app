@@ -16,11 +16,13 @@ import { FactoryDashboardPage } from "@/features/factory-dashboard/pages/Factory
 import { BuyerOrdersPage } from "@/features/buyer-dashboard/pages/BuyerOrdersPage";
 import { HubQueuePage } from "@/features/hub/pages/HubQueuePage";
 import { AdminKYCPage } from "@/features/admin/pages/AdminKYCPage";
+import { RouteError } from "@/components/shared/RouteError";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
+    errorElement: <RouteError />,
     children: [
       {
         index: true,
@@ -67,6 +69,7 @@ export const router = createBrowserRouter([
         <DashboardLayout />
       </RoleGuard>
     ),
+    errorElement: <RouteError />,
     children: [
       {
         path: "dashboard",
@@ -84,6 +87,10 @@ export const router = createBrowserRouter([
         path: "payouts",
         element: <FactoryDashboardPage />,
       },
+      {
+        path: "requests",
+        element: <FactoryDashboardPage />,
+      },
     ],
   },
   {
@@ -93,6 +100,7 @@ export const router = createBrowserRouter([
         <DashboardLayout />
       </RoleGuard>
     ),
+    errorElement: <RouteError />,
     children: [
       {
         path: "orders",
@@ -119,6 +127,7 @@ export const router = createBrowserRouter([
         <DashboardLayout />
       </RoleGuard>
     ),
+    errorElement: <RouteError />,
     children: [
       {
         path: "queue",
@@ -141,6 +150,7 @@ export const router = createBrowserRouter([
         <DashboardLayout />
       </RoleGuard>
     ),
+    errorElement: <RouteError />,
     children: [
       {
         path: "kyc",
@@ -155,6 +165,11 @@ export const router = createBrowserRouter([
         element: <AdminKYCPage />,
       },
       {
+        path: "companies",
+        element: <AdminKYCPage />,
+      },
+      {
+        // Old link; shows the company directory.
         path: "settings",
         element: <AdminKYCPage />,
       },

@@ -86,11 +86,11 @@ export const HubQueuePage: React.FC = () => {
         location,
       });
 
-      setActionSuccess(`Order status updated to ${newStatus.replace("_", " ")}`);
+      setActionSuccess(`Order status updated to ${newStatus.replace(/_/g, " ")}`);
       await fetchOrders();
       setTimeout(() => setActionSuccess(null), 3500);
     } catch (err: any) {
-      alert("Failed to update order status.");
+      alert(err.response?.data?.error?.message || "Failed to update order status.");
     } finally {
       setUpdatingOrderId(null);
     }

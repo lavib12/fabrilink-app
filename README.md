@@ -43,7 +43,13 @@ The database comes pre-seeded with test accounts for each role. You can log in i
 | **Django Admin** | [http://localhost:8000/admin/](http://localhost:8000/admin/) | `admin@fabrilink.com.bd` | `Admin12345!` | Low-level database management, raw models, ledger inspect |
 | **Garment Mill (Factory)** | [http://localhost:5173/factory/dashboard](http://localhost:5173/factory/dashboard) | `sales@squarefashions.com` | `Factory12345!` | View surplus fabric listings, pickup schedules, payouts statement |
 | **Boutique Buyer** | [http://localhost:5173/catalog](http://localhost:5173/catalog) | `buyer@dhakatrendz.com` | `Buyer12345!` | Browse rolls, request roll breakdown cuts, cart, order tracking |
-| **Cutting Hub Operator** | [http://localhost:5173/hub/queue](http://localhost:5173/hub/queue) | `admin@fabrilink.com.bd` | `Admin12345!` | Inspect received rolls, scan barcodes, complete precision cuts |
+| **Cutting Hub Operator** | [http://localhost:5173/hub/queue](http://localhost:5173/hub/queue) | `hub@fabrilink.com.bd` | `Hub12345!` | Inspect received rolls, scan barcodes, complete precision cuts |
+
+> Run `python backend/manage.py seed_demo` once after pulling to create the hub account and activate the demo buyers' credit lines.
+
+## 📱 Mobile app (iOS & Android)
+
+The Expo app lives in [`mobile/`](mobile/README.md). On Windows, double-click `start-backend.cmd` (this folder) and then `mobile\start-mobile.cmd`, and scan the QR code with your phone (same Wi-Fi).
 
 > **Language Toggle**: You can switch between **Bangla (বাংলা)** and **English (EN)** at any time using the language toggle in the top-right navbar!
 
@@ -168,7 +174,12 @@ docker compose down
 | `/catalog/:id` | Fabric Detail & Breakdown | Full roll specs, interactive breakdown calculator & checkout |
 | `/login` | Sign In | Role-aware login with instant redirect to user's dashboard |
 | `/register` | Sign Up | Registration with Trade License & BIN file uploads |
-| `/pending-approval` | KYC Pending | Status screen for accounts awaiting admin verification |
+| `/approval-pending` | KYC Pending | Status screen for accounts awaiting admin verification |
+| `/buyer/requests` | Sourcing Requests | Post fabric you can't find; mills see it and build a profile for you |
+| `/buyer/credit` | B2B Credit Line | Limit, unsettled credit orders and what's left to spend |
+| `/factory/requests` | Buyer Requests | Open sourcing requests from boutiques, one click to build a custom profile |
+| `/admin/matching` | Sourcing Requests | Every request on the platform |
+| `/admin/companies` | Company Directory | Verified mills and boutiques |
 | `/buyer/orders` | Boutique Orders | Live order tracking timeline, cuts breakdown, download receipts |
 | `/factory/dashboard` | Factory Dashboard | Surplus roll inventory, pickup status, earnings & payout ledger |
 | `/hub/queue` | Cutting Hub Queue | Hub receiving workflow, cutting tasks, waste tracking |
@@ -178,6 +189,8 @@ docker compose down
 | Route | Description |
 |---|---|
 | `/api/v1/` | Base API namespace |
+| `/api/v1/matching/requests/` | Sourcing requests (`GET`/`POST`; `…/<id>/matches/`, `…/<id>/close/`) |
+| `/api/v1/orders/credit/` | Buyer's B2B credit summary |
 | `/api/docs/` | Interactive Swagger UI (test endpoints live) |
 | `/api/redoc/` | ReDoc API documentation |
 | `/api/schema/` | Raw OpenAPI 3.0 schema |

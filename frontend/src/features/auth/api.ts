@@ -1,4 +1,4 @@
-import { apiClient } from "@/api/client";
+import { apiClient, refreshAccessToken } from "@/api/client";
 import { AuthSuccessData, User } from "./types";
 
 export interface RegisterPayload {
@@ -38,7 +38,8 @@ export const authApi = {
   },
 
   async refreshToken(): Promise<{ access_token: string }> {
-    const res = await apiClient.post("/auth/token/refresh/", {});
-    return res.data.data;
+    // Route through the shared single-flight refresh to avoid rotation races.
+    const access_token = await refreshAccessToken();
+    return { access_token };
   },
 };

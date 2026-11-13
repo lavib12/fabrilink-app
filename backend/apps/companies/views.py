@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.exceptions import NotFoundError
-from common.permissions import IsAdmin
+from common.permissions import CanBuildFabricProfileForBuyer, IsAdmin
 
 from .models import Company, CompanyTypeChoices, VerificationStatusChoices
 from .selectors import (
@@ -142,7 +142,8 @@ class AdminVerifyCompanyView(APIView):
 class BuyerListView(APIView):
     """List registered buyer companies (boutiques / brands) for factory users to select when building fabric profiles."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    # Buyer contact details must not be exposed to other buyers.
+    permission_classes = [CanBuildFabricProfileForBuyer]
 
     @extend_schema(
         responses={200: CompanySerializer(many=True)},
@@ -203,6 +204,7 @@ class FactoryStorefrontDetailView(APIView):
             Company.objects.filter(
                 id=factory_id,
                 company_type=CompanyTypeChoices.FACTORY,
+                verification_status=VerificationStatusChoices.APPROVED,
             )
             .prefetch_related("addresses")
             .first()
@@ -212,4 +214,3 @@ class FactoryStorefrontDetailView(APIView):
 
         serializer = FactoryStoreSerializer(factory, context={"request": request})
         return Response({"success": True, "data": serializer.data})
-

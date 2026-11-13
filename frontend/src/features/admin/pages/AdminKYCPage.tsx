@@ -65,7 +65,9 @@ export const AdminKYCPage: React.FC = () => {
   const getInitialTab = () => {
     if (location.pathname.includes("/orders")) return "orders";
     if (location.pathname.includes("/matching")) return "matching";
-    if (location.pathname.includes("/settings")) return "settings";
+    // "/admin/settings" had no content; show the company directory instead of a blank page.
+    if (location.pathname.includes("/settings") || location.pathname.includes("/companies"))
+      return "companies";
     return "kyc";
   };
 
@@ -75,6 +77,18 @@ export const AdminKYCPage: React.FC = () => {
   const [allOrders, setAllOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [sourcingRequests, setSourcingRequests] = useState<
+    Array<{
+      id: string;
+      buyer_name: string;
+      fabric_name: string;
+      target_gsm: number | null;
+      required_yards: string | null;
+      color_preference: string;
+      status: string;
+      created_at: string;
+    }>
+  >([]);
 
   // Approval Modal State
   const [approvingCompany, setApprovingCompany] = useState<CompanyData | null>(null);
@@ -100,6 +114,10 @@ export const AdminKYCPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+    apiClient
+      .get("/matching/requests/")
+      .then((res) => setSourcingRequests(res.data.data || []))
+      .catch(() => setSourcingRequests([]));
   };
 
   useEffect(() => {
@@ -274,7 +292,73 @@ export const AdminKYCPage: React.FC = () => {
             {verifiedCompanies.length}
           </span>
         </button>
+        <button
+          onClick={() => setActiveTab("matching")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            activeTab === "matching"
+              ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <span>Sourcing Requests</span>
+          <span className="px-1.5 py-0.5 rounded text-[10px] bg-black/20 text-white font-mono">
+            {sourcingRequests.filter((r) => r.status === "OPEN").length}
+          </span>
+        </button>
       </div>
+
+      {activeTab === "matching" && (
+        <div className="bg-card rounded-3xl border border-border p-6 shadow-sm space-y-4">
+          <div>
+            <h3 className="text-base font-bold text-foreground">Buyer Sourcing Requests</h3>
+            <p className="text-xs text-muted-foreground">
+              Fabric buyers asked for that isn't in the catalog. Verified mills see open requests and
+              can build a custom profile for the buyer.
+            </p>
+          </div>
+          {sourcingRequests.length === 0 ? (
+            <p className="py-10 text-center text-xs text-muted-foreground">No sourcing requests yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold">
+                  <tr>
+                    <th className="py-3 px-4">Buyer</th>
+                    <th className="py-3 px-4">Fabric</th>
+                    <th className="py-3 px-4">GSM</th>
+                    <th className="py-3 px-4">Yards</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Posted</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {sourcingRequests.map((r) => (
+                    <tr key={r.id}>
+                      <td className="py-3 px-4 font-semibold text-foreground">{r.buyer_name}</td>
+                      <td className="py-3 px-4">
+                        {r.fabric_name}
+                        {r.color_preference ? (
+                          <span className="block text-muted-foreground">{r.color_preference}</span>
+                        ) : null}
+                      </td>
+                      <td className="py-3 px-4 tabular-nums">{r.target_gsm ?? "—"}</td>
+                      <td className="py-3 px-4 tabular-nums">
+                        {r.required_yards ? Number(r.required_yards) : "—"}
+                      </td>
+                      <td className="py-3 px-4">{r.status}</td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {new Intl.DateTimeFormat("en-BD", { dateStyle: "medium" }).format(
+                          new Date(r.created_at)
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tab 1: KYC Queue */}
       {activeTab === "kyc" && (

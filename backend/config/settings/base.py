@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from corsheaders.defaults import default_headers
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -17,7 +18,7 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,web").split(",")
+    for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,web,10.0.2.2").split(",")
     if host.strip()
 ]
 
@@ -174,6 +175,8 @@ CORS_ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
+# Lets the Expo web build send the mobile client marker.
+CORS_ALLOW_HEADERS = (*default_headers, "x-client-platform")
 
 # CSRF
 CSRF_TRUSTED_ORIGINS = [

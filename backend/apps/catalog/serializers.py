@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import serializers
 
 from .models import FabricCategory, FabricRoll, FabricRollImage, FabricType
@@ -76,7 +78,11 @@ class FabricRollListSerializer(serializers.ModelSerializer):
         return "Gazipur, Dhaka"
 
     def get_primary_image(self, obj):
-        primary = obj.images.filter(is_primary=True).first() or obj.images.first()
+        # Iterate the prefetched images instead of issuing two queries per roll.
+        images = list(obj.images.all())
+        primary = next((img for img in images if img.is_primary), None) or (
+            images[0] if images else None
+        )
         if primary:
             return primary.image_url or (primary.image_file.url if primary.image_file else None)
         return None
@@ -178,3 +184,40 @@ class FabricRollCreateSerializer(serializers.ModelSerializer):
             "is_custom_profile": {"required": False},
             "buyer_spec_notes": {"required": False},
         }
+
+    def validate_color_hex(self, value):
+        if not re.fullmatch(r"#[0-9A-Fa-f]{6}", value or ""):
+            raise serializers.ValidationError("Use a 6-digit hex colour such as #1E3A8A.")
+        return value.upper()
+
+    def validate(self, attrs):
+        positive_fields = ["gsm", "width_inches", "total_yards", "price_per_yard"]
+        for field in positive_fields:
+            if field in attrs and attrs[field] is not None and attrs[field] <= 0:
+                raise serializers.ValidationError({field: "Must be greater than zero."})
+
+        total = attrs.get("total_yards")
+        available = attrs.get("available_yards")
+        if available is not None:
+            if available < 0:
+                raise serializers.ValidationError({"available_yards": "Cannot be negative."})
+            if total is not None and available > total:
+                raise serializers.ValidationError(
+                    {"available_yards": "Available yards cannot exceed total yards."}
+                )
+
+        min_cut = attrs.get("min_cut_length_yards")
+        if min_cut is not None:
+            if min_cut <= 0:
+                raise serializers.ValidationError(
+                    {"min_cut_length_yards": "Must be greater than zero."}
+                )
+            if total is not None and min_cut > total:
+                raise serializers.ValidationError(
+                    {"min_cut_length_yards": "Minimum cut cannot exceed total yards."}
+                )
+
+        sample_price = attrs.get("sample_price")
+        if sample_price is not None and sample_price < 0:
+            raise serializers.ValidationError({"sample_price": "Cannot be negative."})
+        return attrs

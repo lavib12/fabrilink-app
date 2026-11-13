@@ -29,6 +29,7 @@ export const DashboardLayout: React.FC = () => {
           { name: "My Fabric Stock", path: "/factory/stock", icon: Layers },
           { name: "Pickup Schedules", path: "/factory/pickups", icon: Truck },
           { name: "Payouts & Ledger", path: "/factory/payouts", icon: CreditCard },
+          { name: "Buyer Requests", path: "/factory/requests", icon: FileCheck },
           ...(user?.company?.id
             ? [{ name: "My Storefront", path: `/stores/${user.company.id}`, icon: Factory }]
             : []),
@@ -50,9 +51,9 @@ export const DashboardLayout: React.FC = () => {
       case "ADMIN":
         return [
           { name: "KYC Queue", path: "/admin/kyc", icon: Users },
-          { name: "Matching Engine", path: "/admin/matching", icon: Layers },
+          { name: "Sourcing Requests", path: "/admin/matching", icon: FileCheck },
           { name: "All Orders", path: "/admin/orders", icon: LayoutDashboard },
-          { name: "Platform Settings", path: "/admin/settings", icon: Settings },
+          { name: "Company Directory", path: "/admin/companies", icon: Settings },
         ];
       default:
         return [];

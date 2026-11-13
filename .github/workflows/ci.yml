@@ -53,7 +53,8 @@ jobs:
       - name: Run Django Tests
         env:
           DJANGO_SETTINGS_MODULE: config.settings.test
-          DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_fabrilink
+          # config/settings/test.py reads TEST_DATABASE_URL (it falls back to in-memory SQLite).
+          TEST_DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_fabrilink
           SECRET_KEY: test-secret-key-ci
         run: |
           cd backend && pytest --cov=apps
@@ -75,3 +76,21 @@ jobs:
       - name: Run TypeScript Check & Build
         run: |
           cd frontend && npm run build
+
+  mobile-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: |
+          cd mobile && npm ci
+
+      - name: Type-check, unit tests & Expo dependency check
+        run: |
+          cd mobile && npm run check

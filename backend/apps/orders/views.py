@@ -1,21 +1,72 @@
 from decimal import Decimal
 
-from drf_spectacular.utils import extend_schema
+from django.db.models import Prefetch
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.companies.models import CompanyTypeChoices, VerificationStatusChoices
 from apps.companies.selectors import get_user_primary_company
-from common.exceptions import NotFoundError
+from common.exceptions import NotFoundError, PermissionDeniedError
 
-from .models import Cart, CartItem, Order, OrderStatusChoices, OrderTrackingEvent
+from .models import Cart, CartItem, Order, OrderItem, OrderStatusChoices
 from .serializers import (
     AddToCartSerializer,
     CartItemSerializer,
     CheckoutRequestSerializer,
     OrderDetailSerializer,
+    OrderStatusUpdateSerializer,
 )
-from .services import add_item_to_cart, calculate_order_fees, checkout_cart
+from .services import (
+    add_item_to_cart,
+    calculate_order_fees,
+    checkout_cart,
+    credit_summary,
+    transition_order_status,
+)
+
+
+def _is_operations_staff(user) -> bool:
+    return bool(user.is_staff or user.role in ("ADMIN", "HUB_STAFF"))
+
+
+def _get_buyer_company(user):
+    company = get_user_primary_company(user.id)
+    if not company or company.company_type != CompanyTypeChoices.BUYER:
+        raise PermissionDeniedError("Only buyer accounts can use the cart and checkout.")
+    return company
+
+
+def _scoped_orders(user):
+    """Return the orders the user may see, with items limited to what they may see."""
+    base_items = OrderItem.objects.select_related("fabric_roll")
+    if _is_operations_staff(user):
+        return Order.objects.select_related("buyer").prefetch_related(
+            Prefetch("items", queryset=base_items), "tracking_events"
+        )
+
+    company = get_user_primary_company(user.id)
+    if not company:
+        return Order.objects.none()
+
+    if company.company_type == CompanyTypeChoices.FACTORY:
+        # A factory only sees its own line items, not what the buyer bought from other mills.
+        return (
+            Order.objects.filter(items__fabric_roll__factory=company)
+            .distinct()
+            .select_related("buyer")
+            .prefetch_related(
+                Prefetch("items", queryset=base_items.filter(fabric_roll__factory=company)),
+                "tracking_events",
+            )
+        )
+
+    return (
+        Order.objects.filter(buyer=company)
+        .select_related("buyer")
+        .prefetch_related(Prefetch("items", queryset=base_items), "tracking_events")
+    )
 
 
 class CartView(APIView):
@@ -24,11 +75,11 @@ class CartView(APIView):
     @extend_schema(responses={200: CartItemSerializer(many=True)})
     def get(self, request):
         company = get_user_primary_company(request.user.id)
-        if not company:
+        if not company or company.company_type != CompanyTypeChoices.BUYER:
             return Response({"success": True, "data": {"items": [], "fees": {}}})
 
         cart, _ = Cart.objects.get_or_create(buyer=company)
-        items = cart.items.select_related("fabric_roll").all()
+        items = list(cart.items.select_related("fabric_roll").all())
         items_serializer = CartItemSerializer(items, many=True)
 
         subtotal = sum((item.requested_yards * item.unit_price for item in items), Decimal("0.00"))
@@ -47,9 +98,7 @@ class CartView(APIView):
 
     @extend_schema(request=AddToCartSerializer, responses={201: CartItemSerializer})
     def post(self, request):
-        company = get_user_primary_company(request.user.id)
-        if not company:
-            raise NotFoundError("Buyer company profile not found.")
+        company = _get_buyer_company(request.user)
 
         serializer = AddToCartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -86,14 +135,30 @@ class CartItemDeleteView(APIView):
         return Response({"success": True, "message": "Item removed from cart."})
 
 
+class CreditSummaryView(APIView):
+    """Buyer's B2B credit line: limit, unsettled credit orders and what's left to spend."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(responses={200: OpenApiResponse(description="Credit summary")})
+    def get(self, request):
+        company = _get_buyer_company(request.user)
+        summary = credit_summary(company)
+        data = {k: str(v) if isinstance(v, Decimal) else v for k, v in summary.items()}
+        return Response({"success": True, "data": data})
+
+
 class CheckoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(request=CheckoutRequestSerializer, responses={201: OrderDetailSerializer})
     def post(self, request):
-        company = get_user_primary_company(request.user.id)
-        if not company:
-            raise NotFoundError("Buyer company not found.")
+        company = _get_buyer_company(request.user)
+        if company.verification_status != VerificationStatusChoices.APPROVED:
+            raise PermissionDeniedError(
+                "Your company's KYC verification must be approved before placing orders.",
+                code="company_not_verified",
+            )
 
         serializer = CheckoutRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -102,7 +167,10 @@ class CheckoutView(APIView):
             buyer=company,
             payment_method=serializer.validated_data.get("payment_method", "BKASH"),
             delivery_notes=serializer.validated_data.get("delivery_notes", ""),
+            item_ids=serializer.validated_data.get("item_ids"),
+            actor=request.user,
         )
+        order = _scoped_orders(request.user).get(id=order.id)
 
         return Response(
             {
@@ -119,31 +187,9 @@ class OrderListView(APIView):
 
     @extend_schema(responses={200: OrderDetailSerializer(many=True)})
     def get(self, request):
-        company = get_user_primary_company(request.user.id)
+        orders = _scoped_orders(request.user).order_by("-created_at")
+
         status_filter = request.query_params.get("status")
-
-        if request.user.role in ["ADMIN", "HUB_STAFF"] or request.user.is_staff:
-            orders = (
-                Order.objects.all()
-                .prefetch_related("items", "tracking_events")
-                .order_by("-created_at")
-            )
-        elif not company:
-            return Response({"success": True, "data": []})
-        elif company.company_type == "FACTORY":
-            orders = (
-                Order.objects.filter(items__fabric_roll__factory=company)
-                .distinct()
-                .prefetch_related("items", "tracking_events")
-                .order_by("-created_at")
-            )
-        else:
-            orders = (
-                Order.objects.filter(buyer=company)
-                .prefetch_related("items", "tracking_events")
-                .order_by("-created_at")
-            )
-
         if status_filter:
             orders = orders.filter(status=status_filter)
 
@@ -156,9 +202,7 @@ class OrderDetailView(APIView):
 
     @extend_schema(responses={200: OrderDetailSerializer})
     def get(self, request, order_id):
-        order = (
-            Order.objects.filter(id=order_id).prefetch_related("items", "tracking_events").first()
-        )
+        order = _scoped_orders(request.user).filter(id=order_id).first()
         if not order:
             raise NotFoundError("Order not found.")
         return Response({"success": True, "data": OrderDetailSerializer(order).data})
@@ -167,46 +211,31 @@ class OrderDetailView(APIView):
 class OrderStatusUpdateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=OrderStatusUpdateSerializer, responses={200: OrderDetailSerializer})
     def patch(self, request, order_id):
-        order = (
-            Order.objects.filter(id=order_id).prefetch_related("items", "tracking_events").first()
-        )
+        order = _scoped_orders(request.user).filter(id=order_id).first()
         if not order:
             raise NotFoundError("Order not found.")
 
-        new_status = request.data.get("status")
-        notes = request.data.get("notes", "")
-        location = request.data.get("location", "Tejgaon Central Hub")
+        serializer = OrderStatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_status = serializer.validated_data["status"]
 
-        if new_status and new_status in OrderStatusChoices.values:
-            from_status = order.status
-            order.status = new_status
-            order.save()
+        # Hub staff / admins drive fulfilment. Buyers may only cancel their own order.
+        if not _is_operations_staff(request.user):
+            is_own_order = order.buyer.user_id == request.user.id
+            if not (is_own_order and new_status == OrderStatusChoices.CANCELLED):
+                raise PermissionDeniedError(
+                    "You do not have permission to change this order's status."
+                )
 
-            status_labels = {
-                OrderStatusChoices.PICKUP_SCHEDULED: "Pickup Scheduled from Mill",
-                OrderStatusChoices.PICKED_UP: "Picked Up from Mill",
-                OrderStatusChoices.AT_HUB: "Received at Central Hub & Scanned",
-                OrderStatusChoices.CUTTING: "Precision Machine Cutting in Progress",
-                OrderStatusChoices.CUT_DONE: "Precision Cut Completed",
-                OrderStatusChoices.PACKED: "Packed & Barcode Tag Attached",
-                OrderStatusChoices.OUT_FOR_DELIVERY: "Handed to Courier (Out for Delivery)",
-                OrderStatusChoices.DELIVERED: "Delivered to Boutique",
-                OrderStatusChoices.COMPLETED: "Completed & Settled",
-            }
-            title = status_labels.get(new_status, f"Order status updated to {new_status}")
-            desc = notes or f"Order transitioned from {from_status} to {new_status}."
-
-            OrderTrackingEvent.objects.create(
-                order=order,
-                from_status=from_status,
-                to_status=new_status,
-                title=title,
-                description=desc,
-                location=location,
-            )
-
-        fresh_order = (
-            Order.objects.filter(id=order_id).prefetch_related("items", "tracking_events").first()
+        transition_order_status(
+            order_id=str(order.id),
+            new_status=new_status,
+            actor=request.user,
+            notes=serializer.validated_data.get("notes", ""),
+            location=serializer.validated_data.get("location", ""),
         )
+
+        fresh_order = _scoped_orders(request.user).get(id=order.id)
         return Response({"success": True, "data": OrderDetailSerializer(fresh_order).data})

@@ -5,8 +5,8 @@ from .views import (
     AdminVerifyCompanyView,
     BuyerListView,
     CompanyAddressListView,
-    FactoryStoreListView,
     FactoryStorefrontDetailView,
+    FactoryStoreListView,
     MyCompanyView,
 )
 

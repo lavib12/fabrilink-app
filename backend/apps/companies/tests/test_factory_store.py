@@ -3,7 +3,12 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.catalog.models import FabricCategory, FabricRoll, FabricType
-from apps.companies.models import Company, CompanyAddress, CompanyTypeChoices, VerificationStatusChoices
+from apps.companies.models import (
+    Company,
+    CompanyAddress,
+    CompanyTypeChoices,
+    VerificationStatusChoices,
+)
 from apps.users.models import RoleChoices, User
 
 

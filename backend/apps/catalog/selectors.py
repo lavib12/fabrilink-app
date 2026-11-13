@@ -15,6 +15,30 @@ def get_fabric_roll_by_id(roll_id: str) -> FabricRoll | None:
     )
 
 
+PUBLIC_ROLL_STATUSES = ("ACTIVE", "RESERVED_PARTIAL")
+
+
+def can_view_fabric_roll(roll: FabricRoll, user, user_company=None) -> bool:
+    """
+    A roll is visible when it is publicly listed, or when the viewer is the owning
+    factory, the buyer a custom profile was built for, or platform staff.
+    """
+    is_staff = bool(
+        user
+        and user.is_authenticated
+        and (user.is_staff or getattr(user, "role", None) in ("ADMIN", "HUB_STAFF"))
+    )
+    if is_staff:
+        return True
+    if user_company is not None and roll.factory_id == user_company.id:
+        return True
+    if roll.status not in PUBLIC_ROLL_STATUSES:
+        return False
+    if roll.target_buyer_id is None:
+        return True
+    return user_company is not None and roll.target_buyer_id == user_company.id
+
+
 def list_fabric_rolls(
     *,
     search: str | None = None,
@@ -70,11 +94,11 @@ def list_fabric_rolls(
             qs = qs.filter(target_buyer__isnull=True)
 
     if search:
-        qs = (
-            qs.filter(title__icontains=search)
-            | qs.filter(composition__icontains=search)
-            | qs.filter(roll_code__icontains=search)
-            | qs.filter(buyer_spec_notes__icontains=search)
+        qs = qs.filter(
+            Q(title__icontains=search)
+            | Q(composition__icontains=search)
+            | Q(roll_code__icontains=search)
+            | Q(buyer_spec_notes__icontains=search)
         )
 
     if fabric_type:
