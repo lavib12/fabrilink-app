@@ -56,7 +56,7 @@ export default function OrderDetailScreen() {
         </Card>
 
         {MANUAL_PAYMENT_METHODS.includes(o.payment_method as PaymentMethod) ? (
-          <PaymentPanel order={o} isBuyer={isBuyer} />
+          <PaymentPanel order={o} isBuyer={isBuyer} isAdmin={user?.role === "ADMIN"} />
         ) : null}
 
         {isOps && (next || o.status === "DELIVERED" || o.status === "DISPUTED") ? (

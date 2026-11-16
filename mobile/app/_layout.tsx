@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { AppState, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { useOtaUpdates } from "@/hooks/useOtaUpdates";
 import { queryClient } from "@/queryClient";
 import { useAuth } from "@/store/auth";
 import { fonts, useTheme } from "@/theme";
@@ -39,6 +40,7 @@ export default function RootLayout() {
   const { colors, dark } = useTheme();
   const { t } = useTranslation();
   useAppFocusRefetch();
+  useOtaUpdates();
 
   const [fontsLoaded, fontError] = useFonts({
     HindSiliguri_400Regular,

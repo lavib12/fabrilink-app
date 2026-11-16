@@ -6,8 +6,8 @@ import { Pressable, ScrollView, View } from "react-native";
 
 import { getErrorMessage, getFieldErrors } from "@/api/errors";
 import type { ManualPaymentMethod, Order, PaymentAccounts, PaymentSubmission } from "@/api/types";
-import { Badge, Button, Card, Chip, Divider, KeyValue, Row, Text, TextField } from "@/components/ui";
-import { useOrderPayments, usePaymentAccounts, useSubmitPayment } from "@/hooks/queries";
+import { Badge, Button, Card, Chip, Divider, KeyValue, Row, Sheet, Text, TextField } from "@/components/ui";
+import { useOrderPayments, usePaymentAccounts, useRecordPayment, useSubmitPayment } from "@/hooks/queries";
 import { formatBDT, formatDate, formatDateTime } from "@/lib/format";
 import { MIN_TOUCH, spacing, useTheme } from "@/theme";
 
@@ -248,7 +248,46 @@ function PaymentForm({ order, method, onDone }: { order: Order; method: ManualPa
  * Shown on an order paid by bKash / Nagad / bank transfer: how to pay, the proof form,
  * and the review state. Buyers fill it in; everyone else sees the status.
  */
-export function PaymentPanel({ order, isBuyer }: { order: Order; isBuyer: boolean }) {
+/** Admin: confirm a payment that arrived by phone/SMS or from a buyer on an older app version. */
+function RecordPayment({ order }: { order: Order }) {
+  const { t } = useTranslation();
+  const record = useRecordPayment(order.id);
+  const [open, setOpen] = useState(false);
+  const [trx, setTrx] = useState("");
+  const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const save = async () => {
+    setError(null);
+    try {
+      await record.mutateAsync({ transactionId: trx, note: note.trim() || undefined });
+      setOpen(false);
+    } catch (err) {
+      setError(getFieldErrors(err).transaction_id ?? getErrorMessage(err));
+    }
+  };
+
+  return (
+    <>
+      <Text variant="caption" muted>
+        {t("pay.record.hint")}
+      </Text>
+      <Button title={t("pay.record.button")} variant="secondary" onPress={() => setOpen(true)} />
+      <Sheet
+        visible={open}
+        onClose={() => setOpen(false)}
+        title={t("pay.record.title", { order: order.order_number })}
+        footer={<Button title={t("pay.record.confirm")} onPress={() => void save()} loading={record.isPending} />}
+      >
+        <Text muted>{t("pay.record.body", { amount: formatBDT(order.total_amount, 2), method: t(`payment.${order.payment_method}`) })}</Text>
+        <TextField label={t("pay.record.trx")} value={trx} onChangeText={setTrx} autoCapitalize="characters" error={error ?? undefined} />
+        <TextField label={t("pay.record.note")} value={note} onChangeText={setNote} placeholder={t("pay.record.notePlaceholder")} multiline />
+      </Sheet>
+    </>
+  );
+}
+
+export function PaymentPanel({ order, isBuyer, isAdmin = false }: { order: Order; isBuyer: boolean; isAdmin?: boolean }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const method = order.payment_method as ManualPaymentMethod;
@@ -299,6 +338,7 @@ export function PaymentPanel({ order, isBuyer }: { order: Order; isBuyer: boolea
           <Badge label={t(`pay.status.${status}`)} tone={status === "REJECTED" ? "danger" : "warning"} />
         </Row>
         <Text muted>{t("pay.awaitingOps")}</Text>
+        {isAdmin ? <RecordPayment order={order} /> : null}
       </Card>
     );
   }

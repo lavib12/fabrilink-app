@@ -129,6 +129,41 @@ def submit_payment(*, order: Order, buyer, data: dict) -> PaymentSubmission:
 
 
 @transaction.atomic
+def record_payment_by_admin(*, order: Order, actor, transaction_id: str, amount=None, note: str = "") -> PaymentSubmission:
+    """
+    An admin confirms money that arrived outside the app's proof form, e.g. the buyer
+    phoned in their TrxID, or is still on an older app version without the payment screen.
+    """
+    order = Order.objects.select_for_update().get(id=order.id)
+    if order.payment_method not in MANUAL_METHODS:
+        raise ValidationError("This order doesn't need a payment proof.")
+    if order.status != OrderStatusChoices.REQUESTED:
+        raise InvalidStateTransitionError("This order isn't waiting for payment.")
+    if order.payment_submissions.filter(status=SubmissionStatus.SUBMITTED).exists():
+        raise ConflictError("The buyer already sent a payment for review. Verify or reject that one instead.")
+
+    trx = (transaction_id or "").strip().upper()
+    if len(trx) < 4:
+        raise ValidationError("Enter the transaction ID or bank reference.", details={"transaction_id": "At least 4 characters."})
+    if PaymentSubmission.objects.filter(method=order.payment_method, transaction_id__iexact=trx).exclude(
+        status=SubmissionStatus.REJECTED
+    ).exists():
+        raise ConflictError("This transaction ID has already been used for another payment.")
+
+    submission = PaymentSubmission.objects.create(
+        order=order,
+        buyer=order.buyer,
+        method=order.payment_method,
+        amount=amount or order.total_amount,
+        currency="BDT",
+        transaction_id=trx,
+        note="Recorded by admin",
+        transfer_date=timezone.localdate(),
+    )
+    return review_payment(submission=submission, action="VERIFY", actor=actor, note=note or "Recorded by admin")
+
+
+@transaction.atomic
 def review_payment(*, submission: PaymentSubmission, action: str, actor, note: str = "") -> PaymentSubmission:
     submission = PaymentSubmission.objects.select_for_update().select_related("order").get(id=submission.id)
     if submission.status != SubmissionStatus.SUBMITTED:

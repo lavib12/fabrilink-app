@@ -183,6 +183,21 @@ export function useSubmitPayment(orderId: string) {
   });
 }
 
+export function useRecordPayment(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ transactionId, note }: { transactionId: string; note?: string }) =>
+      paymentsApi.record(orderId, transactionId, note),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["order-payments", orderId] }),
+        qc.invalidateQueries({ queryKey: ["payment-queue"] }),
+        qc.invalidateQueries({ queryKey: ["orders"] }),
+        qc.invalidateQueries({ queryKey: queryKeys.order(orderId) }),
+      ]),
+  });
+}
+
 export const usePaymentQueue = (status?: SubmissionStatus) =>
   useQuery({ queryKey: ["payment-queue", status ?? "ALL"], queryFn: () => paymentsApi.queue(status) });
 

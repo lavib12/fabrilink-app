@@ -4,6 +4,12 @@
     "slug": "fabrilink-mobile",
     "scheme": "fabrilink",
     "version": "1.0.0",
+    "runtimeVersion": { "policy": "appVersion" },
+    "updates": {
+      "url": "https://u.expo.dev/3e6cb572-5fe3-4dba-9a31-2465059c09d5",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "ios": {

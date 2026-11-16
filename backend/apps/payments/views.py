@@ -9,12 +9,13 @@ from common.exceptions import NotFoundError, PermissionDeniedError
 
 from .models import PaymentSettings, PaymentSubmission
 from .serializers import (
+    PaymentRecordSerializer,
     PaymentReviewSerializer,
     PaymentSettingsSerializer,
     PaymentSubmissionSerializer,
     PaymentSubmitSerializer,
 )
-from .services import review_payment, submit_payment
+from .services import record_payment_by_admin, review_payment, submit_payment
 
 
 def _is_admin(user) -> bool:
@@ -62,6 +63,33 @@ class OrderPaymentView(APIView):
                 "message": "Payment details sent. We'll confirm them shortly.",
                 "data": PaymentSubmissionSerializer(submission).data,
             },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class OrderRecordPaymentView(APIView):
+    """Admin: mark an order paid from a transaction ID received by phone, SMS or an old app."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(request=PaymentRecordSerializer, responses={201: PaymentSubmissionSerializer})
+    def post(self, request, order_id):
+        if not _is_admin(request.user):
+            raise PermissionDeniedError("Only administrators can record payments.")
+        order = Order.objects.filter(id=order_id).first()
+        if order is None:
+            raise NotFoundError("Order not found.")
+        serializer = PaymentRecordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        submission = record_payment_by_admin(
+            order=order,
+            actor=request.user,
+            transaction_id=serializer.validated_data["transaction_id"],
+            amount=serializer.validated_data.get("amount"),
+            note=serializer.validated_data.get("note", ""),
+        )
+        return Response(
+            {"success": True, "data": PaymentSubmissionSerializer(submission).data},
             status=status.HTTP_201_CREATED,
         )
 

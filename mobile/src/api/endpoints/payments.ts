@@ -15,6 +15,11 @@ export const paymentsApi = {
     const res = await apiClient.post(`/payments/orders/${orderId}/`, input);
     return res.data.data;
   },
+  /** Admin: mark paid from a TrxID received by phone/SMS, or from an older app version. */
+  async record(orderId: string, transactionId: string, note?: string): Promise<PaymentSubmission> {
+    const res = await apiClient.post(`/payments/orders/${orderId}/record/`, { transaction_id: transactionId, note });
+    return res.data.data;
+  },
   /** Admin review queue. */
   async queue(status?: SubmissionStatus): Promise<PaymentSubmission[]> {
     const res = await apiClient.get("/payments/submissions/", { params: status ? { status } : undefined });

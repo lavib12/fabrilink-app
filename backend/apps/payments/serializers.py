@@ -70,6 +70,14 @@ class PaymentSubmitSerializer(serializers.Serializer):
     note = serializers.CharField(required=False, allow_blank=True, max_length=1000)
 
 
+class PaymentRecordSerializer(serializers.Serializer):
+    transaction_id = serializers.CharField(max_length=64)
+    amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, min_value=Decimal("0.01"), required=False
+    )
+    note = serializers.CharField(required=False, allow_blank=True, max_length=500)
+
+
 class PaymentReviewSerializer(serializers.Serializer):
     action = serializers.ChoiceField(choices=["VERIFY", "REJECT"])
     note = serializers.CharField(required=False, allow_blank=True, max_length=500)

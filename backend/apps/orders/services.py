@@ -344,7 +344,8 @@ def checkout_cart(
         to_status=order.status,
         title="Order placed, awaiting payment" if awaiting_payment else "Order Placed & Payment Authorized",
         description=(
-            f"{total_yards} yards held for you. Send the payment and submit the transaction ID to start cutting."
+            f"{total_yards} yards held for you. Send the payment and submit the transaction ID in the app "
+            "to start cutting. On an older app version, send the transaction ID to FabriLink support."
             if awaiting_payment
             else f"Breakdown hold confirmed for {total_yards} yards. Cutting job dispatched to Tejgaon Hub."
         ),

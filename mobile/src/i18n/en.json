@@ -606,6 +606,22 @@
       "rejectReason": "Reason (shown to the buyer)",
       "rejectPlaceholder": "e.g. No payment with this TrxID found"
     },
-    "senderWallet": "Sender's wallet number"
+    "senderWallet": "Sender's wallet number",
+    "record": {
+      "hint": "Buyer paid but can't submit in the app (older version, or sent the TrxID by phone)? Record it here after checking your statement.",
+      "button": "Record payment received",
+      "title": "Record payment for {{order}}",
+      "body": "Only confirm after you've seen {{amount}} arrive by {{method}}. The order goes to the mill and hub straight away.",
+      "trx": "Transaction ID / bank reference",
+      "note": "Note (optional)",
+      "notePlaceholder": "e.g. Buyer sent TrxID by phone",
+      "confirm": "Confirm payment"
+    }
+  },
+  "update": {
+    "title": "New version ready",
+    "body": "FabriLink has been updated with new features. Restart now to use them.",
+    "later": "Later",
+    "restart": "Restart"
   }
 }

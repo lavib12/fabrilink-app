@@ -45,6 +45,7 @@
     "expo-splash-screen": "~58.0.13",
     "expo-status-bar": "~58.0.4",
     "expo-system-ui": "~58.0.7",
+    "expo-updates": "~58.0.22",
     "i18next": "^27.1.1",
     "jest": "~30.5.2",
     "jest-expo": "~58.0.14",
