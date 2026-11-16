@@ -69,7 +69,8 @@ def sample_order(db, mill_company, buyer_company):
         price_per_yard=Decimal("200.00"),
     )
     add_item_to_cart(buyer=buyer_company, roll_id=str(roll.id), requested_yards=Decimal("20.00"))
-    return checkout_cart(buyer=buyer_company, payment_method="BKASH")
+    # Cash on delivery goes straight to the fulfilment pipeline.
+    return checkout_cart(buyer=buyer_company, payment_method="COD")
 
 
 def test_admin_can_view_all_orders(api_client, admin_user, sample_order):

@@ -10,7 +10,8 @@ import { MIN_TOUCH, radius, spacing, useTheme } from "@/theme";
 
 import { Text } from "./ui";
 
-const METHODS: PaymentMethod[] = ["BKASH", "NAGAD", "SSLCOMMERZ", "COD", "B2B_CREDIT"];
+// Card payments are hidden until a real card gateway is connected.
+const METHODS: PaymentMethod[] = ["BKASH", "NAGAD", "BANK_TRANSFER", "COD", "B2B_CREDIT"];
 
 /** B2B credit is only offered while the credit line has room left (the server re-checks). */
 export function usePaymentMethods(): PaymentMethod[] {

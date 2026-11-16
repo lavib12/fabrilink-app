@@ -12,6 +12,7 @@ export default function AdminLayout() {
       <Tabs screenOptions={screenOptions}>
         <Tabs.Screen name="index" options={{ title: t("tabs.kyc"), tabBarIcon: tabIcon("shield-checkmark-outline", "shield-checkmark") }} />
         <Tabs.Screen name="orders" options={{ title: t("tabs.allOrders"), tabBarIcon: tabIcon("receipt-outline", "receipt") }} />
+        <Tabs.Screen name="payments" options={{ title: t("tabs.payments"), tabBarIcon: tabIcon("wallet-outline", "wallet") }} />
         <Tabs.Screen name="profile" options={{ title: t("tabs.profile"), tabBarIcon: tabIcon("person-circle-outline", "person-circle") }} />
       </Tabs>
     </RoleGate>

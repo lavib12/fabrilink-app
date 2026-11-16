@@ -4,11 +4,14 @@ import { catalogApi } from "@/api/endpoints/catalog";
 import { companiesApi, type KycUpdate, type VerifyInput } from "@/api/endpoints/companies";
 import { ordersApi, type CheckoutInput } from "@/api/endpoints/orders";
 import { matchingApi } from "@/api/endpoints/matching";
+import { paymentsApi } from "@/api/endpoints/payments";
 import { samplesApi } from "@/api/endpoints/samples";
 import type {
   Cart,
   FabricRollCreate,
   OrderStatus,
+  PaymentSubmitInput,
+  SubmissionStatus,
   RollFilters,
   SampleRequestInput,
   SampleStatus,
@@ -152,6 +155,49 @@ export function useSetSampleStatus() {
     mutationFn: ({ id, status, note }: { id: string; status: SampleStatus; note?: string }) =>
       samplesApi.setStatus(id, status, note),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["samples"] }),
+  });
+}
+
+// ---------- Manual payments ----------
+
+export const usePaymentAccounts = (enabled = true) =>
+  useQuery({ queryKey: ["payment-accounts"], queryFn: paymentsApi.accounts, staleTime: 5 * 60_000, enabled });
+
+export const useOrderPayments = (orderId: string | undefined, enabled = true) =>
+  useQuery({
+    queryKey: ["order-payments", orderId ?? ""],
+    queryFn: () => paymentsApi.forOrder(orderId as string),
+    enabled: Boolean(orderId) && enabled,
+  });
+
+export function useSubmitPayment(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PaymentSubmitInput) => paymentsApi.submit(orderId, input),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["order-payments", orderId] }),
+        qc.invalidateQueries({ queryKey: ["orders"] }),
+        qc.invalidateQueries({ queryKey: queryKeys.order(orderId) }),
+      ]),
+  });
+}
+
+export const usePaymentQueue = (status?: SubmissionStatus) =>
+  useQuery({ queryKey: ["payment-queue", status ?? "ALL"], queryFn: () => paymentsApi.queue(status) });
+
+export function useReviewPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action, note }: { id: string; action: "VERIFY" | "REJECT"; note?: string }) =>
+      paymentsApi.review(id, action, note),
+    onSuccess: (sub) =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["payment-queue"] }),
+        qc.invalidateQueries({ queryKey: ["order-payments", sub.order_id] }),
+        qc.invalidateQueries({ queryKey: ["orders"] }),
+        qc.invalidateQueries({ queryKey: queryKeys.order(sub.order_id) }),
+      ]),
   });
 }
 

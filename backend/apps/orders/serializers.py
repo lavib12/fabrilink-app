@@ -52,7 +52,7 @@ class AddToCartSerializer(serializers.Serializer):
 
 class CheckoutRequestSerializer(serializers.Serializer):
     payment_method = serializers.ChoiceField(
-        choices=["BKASH", "NAGAD", "SSLCOMMERZ", "B2B_CREDIT", "COD"],
+        choices=["BKASH", "NAGAD", "BANK_TRANSFER", "SSLCOMMERZ", "B2B_CREDIT", "COD"],
         default="BKASH",
     )
     delivery_notes = serializers.CharField(required=False, allow_blank=True)
@@ -104,10 +104,29 @@ class OrderTrackingEventSerializer(serializers.ModelSerializer):
         ]
 
 
+MANUAL_PAYMENT_METHODS = {"BKASH", "NAGAD", "BANK_TRANSFER"}
+
+
 class OrderDetailSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     tracking_events = OrderTrackingEventSerializer(many=True, read_only=True)
     buyer_name = serializers.CharField(source="buyer.name", read_only=True)
+    payment_status = serializers.SerializerMethodField()
+
+    def get_payment_status(self, obj) -> str:
+        """
+        NOT_REQUIRED: COD / credit / card. AWAITING: buyer still has to send proof.
+        SUBMITTED / VERIFIED / REJECTED: state of the latest proof.
+        """
+        if obj.payment_method not in MANUAL_PAYMENT_METHODS:
+            return "NOT_REQUIRED"
+        latest = max(obj.payment_submissions.all(), key=lambda s: s.created_at, default=None)
+        if latest is not None:
+            return latest.status
+        if obj.status == OrderStatusChoices.REQUESTED:
+            return "AWAITING"
+        # Orders placed before manual payments existed were treated as paid.
+        return "NOT_REQUIRED"
 
     class Meta:
         model = Order
@@ -124,6 +143,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             "total_amount",
             "currency",
             "payment_method",
+            "payment_status",
             "delivery_notes",
             "cancellation_reason",
             "items",

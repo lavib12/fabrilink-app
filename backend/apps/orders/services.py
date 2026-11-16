@@ -41,8 +41,13 @@ FULFILMENT_PIPELINE = [
     OrderStatusChoices.DELIVERED,
     OrderStatusChoices.COMPLETED,
 ]
+# Paid by sending money and proving it (TrxID / bank reference). These orders wait in
+# REQUESTED ("awaiting payment") until an admin verifies the proof in apps.payments.
+MANUAL_PAYMENT_METHODS = {"BKASH", "NAGAD", "BANK_TRANSFER"}
+
 # Stock is only returned to the roll if the fabric hasn't been cut yet.
 CANCELLABLE_STATUSES = {
+    OrderStatusChoices.REQUESTED,
     OrderStatusChoices.PAID_CREDIT_APPROVED,
     OrderStatusChoices.PICKUP_SCHEDULED,
     OrderStatusChoices.PICKED_UP,
@@ -288,10 +293,15 @@ def checkout_cart(
     if payment_method == "B2B_CREDIT":
         _assert_credit_available(buyer, fees["total_amount"])
 
+    awaiting_payment = payment_method in MANUAL_PAYMENT_METHODS
     order = Order.objects.create(
         order_number=_generate_order_number(),
         buyer=buyer,
-        status=OrderStatusChoices.PAID_CREDIT_APPROVED,
+        status=(
+            OrderStatusChoices.REQUESTED
+            if awaiting_payment
+            else OrderStatusChoices.PAID_CREDIT_APPROVED
+        ),
         payment_method=payment_method,
         delivery_notes=delivery_notes,
         **fees,
@@ -332,8 +342,12 @@ def checkout_cart(
         order=order,
         from_status=OrderStatusChoices.DRAFT,
         to_status=order.status,
-        title="Order Placed & Payment Authorized",
-        description=f"Breakdown hold confirmed for {total_yards} yards. Cutting job dispatched to Tejgaon Hub.",
+        title="Order placed, awaiting payment" if awaiting_payment else "Order Placed & Payment Authorized",
+        description=(
+            f"{total_yards} yards held for you. Send the payment and submit the transaction ID to start cutting."
+            if awaiting_payment
+            else f"Breakdown hold confirmed for {total_yards} yards. Cutting job dispatched to Tejgaon Hub."
+        ),
         location="FabriLink Central Clearing",
         actor=actor,
     )

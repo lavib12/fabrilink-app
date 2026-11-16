@@ -60,7 +60,8 @@ def setup(db):
         is_custom_profile=True,
     )
     add_item_to_cart(buyer=buyer, roll_id=str(roll.id), requested_yards=Decimal("20"))
-    order = checkout_cart(buyer=buyer)
+    # Cash on delivery, so the order is ready for the hub without a payment proof.
+    order = checkout_cart(buyer=buyer, payment_method="COD")
     return {
         "buyer_user": buyer_user,
         "other_user": other_user,

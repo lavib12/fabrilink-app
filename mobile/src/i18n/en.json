@@ -38,7 +38,8 @@
     "queue": "Queue",
     "scan": "Scan",
     "kyc": "KYC",
-    "allOrders": "Orders"
+    "allOrders": "Orders",
+    "payments": "Payments"
   },
   "roles": {
     "BUYER": "Boutique / brand (buyer)",
@@ -208,16 +209,18 @@
   },
   "payment": {
     "BKASH": "bKash",
-    "BKASH_hint": "Mobile wallet",
+    "BKASH_hint": "Send money, then enter the transaction ID",
     "NAGAD": "Nagad",
-    "NAGAD_hint": "Mobile wallet",
+    "NAGAD_hint": "Send money, then enter the transaction ID",
     "SSLCOMMERZ": "Card / net banking",
     "SSLCOMMERZ_hint": "Visa, Mastercard, AMEX via SSLCommerz",
     "COD": "Cash on delivery",
     "COD_hint": "Pay the courier on arrival",
     "B2B_CREDIT": "B2B credit",
     "B2B_CREDIT_hint": "Use your approved credit line",
-    "creditLeft": "{{amount}} available on your credit line"
+    "creditLeft": "{{amount}} available on your credit line",
+    "BANK_TRANSFER": "Bank transfer",
+    "BANK_TRANSFER_hint": "BEFTN / RTGS from Bangladesh, or SWIFT from abroad"
   },
   "checkout": {
     "paymentMethod": "Payment method",
@@ -238,7 +241,7 @@
   },
   "orderStatus": {
     "DRAFT": "Draft",
-    "REQUESTED": "Requested",
+    "REQUESTED": "Awaiting payment",
     "QUOTED_CONFIRMED": "Quoted",
     "PAID_CREDIT_APPROVED": "Paid",
     "PICKUP_SCHEDULED": "Pickup scheduled",
@@ -265,7 +268,8 @@
     "items": "Items",
     "tracking": "Tracking",
     "yourItemsTotal": "Your items total",
-    "itemMeta": "{{code}}, {{color}}"
+    "itemMeta": "{{code}}, {{color}}",
+    "paymentMethod": "Payment method"
   },
   "orderActions": {
     "title": "Update status",
@@ -525,5 +529,83 @@
     "buyerLabel": "Buyer",
     "millLabel": "Mill",
     "priceLabel": "Mill's sample price"
+  },
+  "pay": {
+    "copyLabel": "Copy {{label}}",
+    "sendTo": "{{wallet}} number · {{type}}",
+    "amountToSend": "Amount to send",
+    "reference": "Reference / note",
+    "walletSteps": {
+      "PERSONAL": "Open {{wallet}} → Send Money → enter this number and the amount. Write the order number as the reference. You'll get an SMS with the transaction ID (TrxID).",
+      "MERCHANT": "Open {{wallet}} → Payment → enter this merchant number and the amount. Write the order number as the reference. You'll get an SMS with the transaction ID (TrxID).",
+      "AGENT": "Cash in to this {{wallet}} agent number at any agent point, then keep the transaction ID (TrxID) from the SMS."
+    },
+    "bank": {
+      "accountName": "Account name",
+      "accountNumber": "Account number",
+      "bankName": "Bank",
+      "branch": "Branch",
+      "routing": "Routing number (BEFTN / RTGS)",
+      "swift": "SWIFT / BIC",
+      "address": "Bank address",
+      "intermediary": "Intermediary bank (for USD / EUR)",
+      "currencies": "Accepts",
+      "localNote": "From a Bangladeshi bank: send by BEFTN, RTGS (৳5 lakh or more) or NPSB using the routing number. Put the order number in the remarks.",
+      "intlNote": "From abroad: send a SWIFT wire using the SWIFT code. Choose “OUR” charges so the full amount arrives, and put the order number in the payment details."
+    },
+    "amountSent": "Amount sent",
+    "sentAt": "Sent {{date}}",
+    "form": {
+      "title": "2. After you pay, tell us the details",
+      "senderName": "Account holder name (sender)",
+      "senderBank": "Sender's bank",
+      "country": "Sender's bank country",
+      "senderIban": "Sender's account number or IBAN (optional)",
+      "senderSwift": "Sender bank SWIFT / BIC (optional)",
+      "currency": "Currency you sent",
+      "amount": "Amount sent ({{currency}})",
+      "date": "Transfer date",
+      "dateHint": "Format: YYYY-MM-DD",
+      "bankRef": "Bank transfer reference",
+      "bankRefHint": "The reference, UTR or transaction number on your bank receipt.",
+      "walletNumber": "Your wallet number (sent from)",
+      "trxId": "Transaction ID (TrxID)",
+      "trxHint": "It's in the {{wallet}} SMS, e.g. TrxID 9A7B3C1D2E.",
+      "note": "Note (optional)",
+      "submit": "Submit payment details"
+    },
+    "verifiedTitle": "Payment confirmed",
+    "reviewTitle": "Payment under review",
+    "reviewBody": "We're matching your payment with our statement. This usually takes a few hours during office time. Cutting starts once it's confirmed.",
+    "awaitingTitle": "Awaiting payment",
+    "awaitingOps": "The buyer hasn't sent a confirmed payment yet. Don't start this order.",
+    "status": {
+      "AWAITING": "Not paid yet",
+      "SUBMITTED": "Waiting for review",
+      "VERIFIED": "Verified",
+      "REJECTED": "Rejected"
+    },
+    "payTitle": "Pay with {{method}}",
+    "payIntro": "Your fabric is held for you. Send the payment, then submit the transaction details below.",
+    "rejectedTitle": "We couldn't confirm your last payment",
+    "rejectedBody": "Please check the details and submit again.",
+    "step1": "1. Send the money here",
+    "notSetUp": "FabriLink hasn't added its {{method}} account yet. Please cancel and choose another payment method, or contact support.",
+    "admin": {
+      "intro": "Check each payment against the bKash / Nagad / bank statement before verifying. Verified orders go to the mill and hub.",
+      "verifyTitle": "Verify this payment?",
+      "verifyBody": "Confirm that {{amount}} with reference {{ref}} has arrived in the account.",
+      "verify": "Verify",
+      "reject": "Reject",
+      "empty": "No payments here",
+      "orderTotal": "Order total",
+      "short": "Less than the order total.",
+      "reviewNote": "Review note",
+      "callBuyer": "Call buyer",
+      "rejectTitle": "Reject {{ref}}",
+      "rejectReason": "Reason (shown to the buyer)",
+      "rejectPlaceholder": "e.g. No payment with this TrxID found"
+    },
+    "senderWallet": "Sender's wallet number"
   }
 }

@@ -309,7 +309,73 @@ export interface SourcingRequestInput {
   notes?: string;
 }
 
-export type PaymentMethod = "BKASH" | "NAGAD" | "SSLCOMMERZ" | "B2B_CREDIT" | "COD";
+export type PaymentMethod = "BKASH" | "NAGAD" | "BANK_TRANSFER" | "SSLCOMMERZ" | "B2B_CREDIT" | "COD";
+export type ManualPaymentMethod = "BKASH" | "NAGAD" | "BANK_TRANSFER";
+export const MANUAL_PAYMENT_METHODS: readonly PaymentMethod[] = ["BKASH", "NAGAD", "BANK_TRANSFER"];
+
+/** NOT_REQUIRED: COD / credit. AWAITING: proof not sent yet. Others: the latest proof's state. */
+export type OrderPaymentStatus = "NOT_REQUIRED" | "AWAITING" | "SUBMITTED" | "VERIFIED" | "REJECTED";
+export type SubmissionStatus = "SUBMITTED" | "VERIFIED" | "REJECTED";
+
+/** Where buyers send money; edited by an admin. Empty strings mean "not set up yet". */
+export interface PaymentAccounts {
+  bkash_number: string;
+  bkash_account_type: "PERSONAL" | "MERCHANT" | "AGENT";
+  bkash_account_type_label: string;
+  nagad_number: string;
+  nagad_account_type: "PERSONAL" | "MERCHANT" | "AGENT";
+  nagad_account_type_label: string;
+  bank_account_name: string;
+  bank_account_number: string;
+  bank_name: string;
+  bank_branch: string;
+  bank_routing_number: string;
+  bank_swift_code: string;
+  bank_iban: string;
+  bank_address: string;
+  bank_currencies: string;
+  intermediary_bank: string;
+  instructions: string;
+}
+
+export interface PaymentSubmission {
+  id: string;
+  order_id: string;
+  order_number: string;
+  order_total: string;
+  buyer_name: string;
+  buyer_phone: string;
+  method: ManualPaymentMethod;
+  method_label: string;
+  amount: string;
+  currency: string;
+  transaction_id: string;
+  sender_account: string;
+  sender_name: string;
+  sender_bank_name: string;
+  sender_bank_country: string;
+  sender_swift_code: string;
+  transfer_date: string | null;
+  note: string;
+  status: SubmissionStatus;
+  review_note: string;
+  reviewed_by_email: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+export interface PaymentSubmitInput {
+  amount: string;
+  currency?: string;
+  transaction_id: string;
+  sender_account?: string;
+  sender_name?: string;
+  sender_bank_name?: string;
+  sender_bank_country?: string;
+  sender_swift_code?: string;
+  transfer_date?: string | null;
+  note?: string;
+}
 
 export type OrderStatus =
   | "DRAFT"
@@ -358,6 +424,7 @@ export interface Order extends Fees {
   status: OrderStatus;
   currency: string;
   payment_method: PaymentMethod | string;
+  payment_status: OrderPaymentStatus;
   delivery_notes: string;
   cancellation_reason: string;
   items: OrderItem[];

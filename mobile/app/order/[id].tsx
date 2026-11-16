@@ -3,9 +3,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, View } from "react-native";
 
-import type { OrderStatus } from "@/api/types";
+import { MANUAL_PAYMENT_METHODS, type OrderStatus, type PaymentMethod } from "@/api/types";
 import { FeeBreakdown } from "@/components/FeeBreakdown";
 import { OrderStatusSheet } from "@/components/OrderStatusSheet";
+import { PaymentPanel } from "@/components/PaymentPanel";
 import { OrderTimeline, StatusBadge } from "@/components/orders";
 import { Button, Card, Divider, ErrorState, KeyValue, LoadingState, Row, Text } from "@/components/ui";
 import { useOrder } from "@/hooks/queries";
@@ -44,7 +45,7 @@ export default function OrderDetailScreen() {
           <Text>{o.buyer_name}</Text>
           <Text muted>{formatDateTime(o.created_at)}</Text>
           <Text muted>
-            {t("orders.paidWith")}: {t(`payment.${o.payment_method}`, { defaultValue: o.payment_method })}
+            {t("orders.paymentMethod")}: {t(`payment.${o.payment_method}`, { defaultValue: o.payment_method })}
           </Text>
           {o.delivery_notes ? <Text>{o.delivery_notes}</Text> : null}
           {o.cancellation_reason ? (
@@ -53,6 +54,10 @@ export default function OrderDetailScreen() {
             </Text>
           ) : null}
         </Card>
+
+        {MANUAL_PAYMENT_METHODS.includes(o.payment_method as PaymentMethod) ? (
+          <PaymentPanel order={o} isBuyer={isBuyer} />
+        ) : null}
 
         {isOps && (next || o.status === "DELIVERED" || o.status === "DISPUTED") ? (
           <Card style={{ gap: spacing.sm }}>

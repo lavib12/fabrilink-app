@@ -43,7 +43,7 @@ def _scoped_orders(user):
     base_items = OrderItem.objects.select_related("fabric_roll")
     if _is_operations_staff(user):
         return Order.objects.select_related("buyer").prefetch_related(
-            Prefetch("items", queryset=base_items), "tracking_events"
+            Prefetch("items", queryset=base_items), "tracking_events", "payment_submissions"
         )
 
     company = get_user_primary_company(user.id)
@@ -51,21 +51,26 @@ def _scoped_orders(user):
         return Order.objects.none()
 
     if company.company_type == CompanyTypeChoices.FACTORY:
-        # A factory only sees its own line items, not what the buyer bought from other mills.
+        # A factory only sees its own line items, not what the buyer bought from other mills,
+        # and only once the order is paid (unpaid orders aren't theirs to prepare yet).
         return (
             Order.objects.filter(items__fabric_roll__factory=company)
+            .exclude(status=OrderStatusChoices.REQUESTED)
             .distinct()
             .select_related("buyer")
             .prefetch_related(
                 Prefetch("items", queryset=base_items.filter(fabric_roll__factory=company)),
                 "tracking_events",
+                "payment_submissions",
             )
         )
 
     return (
         Order.objects.filter(buyer=company)
         .select_related("buyer")
-        .prefetch_related(Prefetch("items", queryset=base_items), "tracking_events")
+        .prefetch_related(
+            Prefetch("items", queryset=base_items), "tracking_events", "payment_submissions"
+        )
     )
 
 
@@ -175,7 +180,11 @@ class CheckoutView(APIView):
         return Response(
             {
                 "success": True,
-                "message": "Order created and payment authorized successfully.",
+                "message": (
+                    "Order placed. Send the payment and submit the transaction ID."
+                    if order.status == OrderStatusChoices.REQUESTED
+                    else "Order created and payment authorized successfully."
+                ),
                 "data": OrderDetailSerializer(order).data,
             },
             status=status.HTTP_201_CREATED,

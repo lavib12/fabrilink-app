@@ -91,8 +91,9 @@ def test_add_to_cart_and_checkout_flow(buyer_company, fabric_roll):
     assert cart_item.requested_yards == Decimal("25.00")
 
     # 2. Checkout
+    # bKash orders hold the stock and wait for the buyer's payment proof.
     order = checkout_cart(buyer=buyer_company, payment_method="BKASH")
-    assert order.status == "PAID_CREDIT_APPROVED"
+    assert order.status == "REQUESTED"
     assert order.items.count() == 1
     assert order.items.first().requested_yards == Decimal("25.00")
 
