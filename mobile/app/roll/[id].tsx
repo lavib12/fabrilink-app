@@ -16,6 +16,7 @@ import { useAddToCart, useCheckout, useCreateSampleRequest, useRoll, useSampleRe
 import { getErrorMessage } from "@/api/errors";
 import { checkBreakdown } from "@/lib/breakdown";
 import { formatBDT, formatNumber, toNumber } from "@/lib/format";
+import { isGatewayMethod, openOnlinePayment } from "@/lib/onlinePayment";
 import { estimateFees } from "@/lib/pricing";
 import { showPurchaseError } from "@/lib/purchaseErrors";
 import { useAuth } from "@/store/auth";
@@ -95,6 +96,8 @@ export default function RollDetailScreen() {
       });
       setBuyOpen(false);
       router.replace({ pathname: "/order/[id]", params: { id: order.id } });
+      // Like Daraz: go straight to the bKash / Nagad / card page.
+      if (isGatewayMethod(order.payment_method)) void openOnlinePayment(order.id, t);
     } catch (err) {
       setBuyOpen(false);
       handlePurchaseError(err);

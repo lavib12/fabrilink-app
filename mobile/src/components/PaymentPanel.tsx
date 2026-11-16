@@ -13,6 +13,7 @@ import type { ManualPaymentMethod, Order, PaymentAccounts, PaymentSubmission } f
 import { Badge, Button, Card, Chip, Divider, KeyValue, Row, Sheet, Text, TextField } from "@/components/ui";
 import { useOrderPayments, usePaymentAccounts, useRecordPayment, useSubmitPayment } from "@/hooks/queries";
 import { formatBDT, formatDate, formatDateTime } from "@/lib/format";
+import { isGatewayMethod, openOnlinePayment } from "@/lib/onlinePayment";
 import { MIN_TOUCH, spacing, useTheme } from "@/theme";
 
 const CURRENCIES = ["BDT", "USD", "EUR", "GBP", "AED", "SAR", "MYR", "SGD"];
@@ -428,10 +429,12 @@ export function PaymentPanel({ order, isBuyer, isAdmin = false }: { order: Order
   const method = order.payment_method as ManualPaymentMethod;
   const status = order.payment_status;
   const needsProof = status === "AWAITING" || status === "REJECTED";
-  const accounts = usePaymentAccounts(isBuyer && needsProof);
+  const accounts = usePaymentAccounts(isBuyer && needsProof && method !== "SSLCOMMERZ");
   const payments = useOrderPayments(order.id, status !== "AWAITING");
   const latest = payments.data?.[0];
   const [justSent, setJustSent] = useState(false);
+  const gateway = isGatewayMethod(method);
+  const [showManual, setShowManual] = useState(false);
 
   if (status === "NOT_REQUIRED") return null;
 
@@ -498,15 +501,35 @@ export function PaymentPanel({ order, isBuyer, isAdmin = false }: { order: Order
           <Text>{latest.review_note || t("pay.rejectedBody")}</Text>
         </View>
       ) : (
-        <Text muted>{t("pay.payIntro")}</Text>
+        <Text muted>{gateway ? t("gateway.intro", { method: t(`payment.${method}`) }) : t("pay.payIntro")}</Text>
       )}
 
-      {accounts.isPending ? (
+      {gateway ? (
+        <View style={{ gap: spacing.sm }}>
+          <Button
+            title={t("gateway.payNow", { amount: formatBDT(order.total_amount, 2), method: t(`payment.${method}`) })}
+            icon={<Ionicons name="lock-closed" size={18} color={colors.primaryText} />}
+            onPress={() => void openOnlinePayment(order.id, t)}
+          />
+          <Text variant="caption" muted center>
+            {t("gateway.secure")}
+          </Text>
+          {method !== "SSLCOMMERZ" && !showManual ? (
+            <Button title={t("gateway.manualToggle")} variant="ghost" small onPress={() => setShowManual(true)} />
+          ) : null}
+        </View>
+      ) : null}
+
+      {gateway && !showManual ? null : accounts.isPending ? (
         <Text muted>…</Text>
       ) : a && hasAccount(method, a) ? (
         <>
           <Text variant="label">{t("pay.step1")}</Text>
-          {method === "BANK_TRANSFER" ? <BankInstructions accounts={a} order={order} /> : <WalletInstructions method={method} accounts={a} order={order} />}
+          {method === "BANK_TRANSFER" ? (
+            <BankInstructions accounts={a} order={order} />
+          ) : (
+            <WalletInstructions method={method as "BKASH" | "NAGAD"} accounts={a} order={order} />
+          )}
           {a.instructions ? <Text variant="caption">{a.instructions}</Text> : null}
           <Divider />
           <PaymentForm order={order} method={method} onDone={() => setJustSent(true)} />

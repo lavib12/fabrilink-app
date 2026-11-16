@@ -16,7 +16,8 @@ import { useAuth } from "@/store/auth";
 import { spacing, useTheme } from "@/theme";
 
 export default function OrderDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // `payment` is set when SSLCommerz sends the buyer back: fabrilink://order/<id>?payment=success
+  const { id, payment } = useLocalSearchParams<{ id: string; payment?: "success" | "fail" | "cancel" }>();
   const { t } = useTranslation();
   const { colors } = useTheme();
   const user = useAuth((s) => s.user);
@@ -37,6 +38,21 @@ export default function OrderDetailScreen() {
         contentContainerStyle={{ padding: spacing.md, gap: spacing.md }}
         refreshControl={<RefreshControl refreshing={order.isRefetching} onRefresh={() => void order.refetch()} />}
       >
+        {payment && o.payment_status !== "VERIFIED" ? (
+          <Card
+            style={{
+              gap: 4,
+              backgroundColor: payment === "success" ? colors.successSoft : colors.warningSoft,
+              borderColor: payment === "success" ? colors.success : colors.warning,
+            }}
+          >
+            <Text variant="label" color={payment === "success" ? colors.success : colors.warning}>
+              {t(`gateway.back.${payment}`)}
+            </Text>
+            <Text variant="caption">{t(`gateway.back.${payment}Body`)}</Text>
+          </Card>
+        ) : null}
+
         <Card style={{ gap: spacing.sm }}>
           <Row style={{ justifyContent: "space-between" }}>
             <Text variant="subheading">{o.order_number}</Text>

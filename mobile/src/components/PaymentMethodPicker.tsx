@@ -10,8 +10,8 @@ import { MIN_TOUCH, radius, spacing, useTheme } from "@/theme";
 
 import { Text } from "./ui";
 
-// Card payments are hidden until a real card gateway is connected.
-const METHODS: PaymentMethod[] = ["BKASH", "NAGAD", "BANK_TRANSFER", "COD", "B2B_CREDIT"];
+// bKash, Nagad and cards open the SSLCommerz payment page; bank transfer uses a proof form.
+const METHODS: PaymentMethod[] = ["BKASH", "NAGAD", "SSLCOMMERZ", "BANK_TRANSFER", "COD", "B2B_CREDIT"];
 
 /** B2B credit is only offered while the credit line has room left (the server re-checks). */
 export function usePaymentMethods(): PaymentMethod[] {

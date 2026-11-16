@@ -10,10 +10,15 @@ class ManualPaymentMethod(models.TextChoices):
     BKASH = "BKASH", "bKash"
     NAGAD = "NAGAD", "Nagad"
     BANK_TRANSFER = "BANK_TRANSFER", "Bank transfer"
+    SSLCOMMERZ = "SSLCOMMERZ", "Card / internet banking"
 
 
-# Orders paid with these stay "awaiting payment" until an admin checks the proof.
-MANUAL_METHODS = {m.value for m in ManualPaymentMethod}
+# Buyers can send a proof (TrxID / bank reference) for these.
+MANUAL_METHODS = {"BKASH", "NAGAD", "BANK_TRANSFER"}
+# Paid on the SSLCommerz page (bKash, Nagad, cards, internet banking), like Daraz.
+GATEWAY_METHODS = {"BKASH", "NAGAD", "SSLCOMMERZ"}
+# Orders paid with any of these wait as "awaiting payment" until the money is confirmed.
+PREPAID_METHODS = MANUAL_METHODS | GATEWAY_METHODS
 
 
 class WalletAccountType(models.TextChoices):
@@ -82,6 +87,38 @@ class ChargesOption(models.TextChoices):
     OUR = "OUR", "OUR: sender pays all charges"
     SHA = "SHA", "SHA: charges shared"
     BEN = "BEN", "BEN: receiver pays all charges"
+
+
+class GatewayStatus(models.TextChoices):
+    INITIATED = "INITIATED", "Started"
+    SUCCESS = "SUCCESS", "Paid"
+    FAILED = "FAILED", "Failed"
+    CANCELLED = "CANCELLED", "Cancelled"
+    INVALID = "INVALID", "Did not validate"
+
+
+class GatewayPayment(UUIDModel, TimeStampedModel):
+    """One attempt to pay an order on the SSLCommerz hosted page."""
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="gateway_payments")
+    tran_id = models.CharField(max_length=30, unique=True)
+    method = models.CharField(max_length=20)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    sandbox = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=20, choices=GatewayStatus.choices, default=GatewayStatus.INITIATED, db_index=True
+    )
+    val_id = models.CharField(max_length=80, blank=True)
+    bank_tran_id = models.CharField(max_length=80, blank=True)
+    card_type = models.CharField(max_length=60, blank=True)
+    card_no = models.CharField(max_length=60, blank=True)
+    detail = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.tran_id} ({self.status})"
 
 
 class SubmissionStatus(models.TextChoices):

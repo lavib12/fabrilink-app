@@ -209,11 +209,11 @@
   },
   "payment": {
     "BKASH": "bKash",
-    "BKASH_hint": "Send money, then enter the transaction ID",
+    "BKASH_hint": "Pay on the bKash page: number, OTP and PIN",
     "NAGAD": "Nagad",
-    "NAGAD_hint": "Send money, then enter the transaction ID",
-    "SSLCOMMERZ": "Card / net banking",
-    "SSLCOMMERZ_hint": "Visa, Mastercard, AMEX via SSLCommerz",
+    "NAGAD_hint": "Pay on the Nagad page: number, OTP and PIN",
+    "SSLCOMMERZ": "Card / internet banking",
+    "SSLCOMMERZ_hint": "Visa, Mastercard, Amex, DBBL Nexus, internet banking",
     "COD": "Cash on delivery",
     "COD_hint": "Pay the courier on arrival",
     "B2B_CREDIT": "B2B credit",
@@ -677,5 +677,20 @@
     "save": "Save",
     "saved": "Saved. Buyers now see these details.",
     "notReady": "Buyers can't pay by the methods marked ! until you add the details. Tap to set up."
+  },
+  "gateway": {
+    "intro": "Your fabric is held for you. Pay with {{method}} on the secure payment page; the order is confirmed as soon as the payment goes through.",
+    "payNow": "Pay {{amount}} with {{method}}",
+    "secure": "Secure payment by SSLCommerz. You'll come back to FabriLink after paying.",
+    "manualToggle": "Paid with Send Money instead? Enter the transaction ID",
+    "startFailed": "Couldn't open the payment page",
+    "back": {
+      "success": "Payment received",
+      "successBody": "We're confirming it now. Pull down to refresh if the status hasn't changed yet.",
+      "fail": "Payment didn't go through",
+      "failBody": "No money was taken. Tap Pay to try again, or choose another way to pay.",
+      "cancel": "Payment cancelled",
+      "cancelBody": "Your fabric is still held. Tap Pay when you're ready."
+    }
   }
 }

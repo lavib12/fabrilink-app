@@ -56,6 +56,7 @@ describe("translation coverage", () => {
       "pay.walletSteps": ["PERSONAL", "MERCHANT", "AGENT"],
       "pay.form.chargesHint": ["OUR", "SHA", "BEN"],
       "accounts.type": ["PERSONAL", "MERCHANT", "AGENT"],
+      "gateway.back": ["success", "successBody", "fail", "failBody", "cancel", "cancelBody"],
       accounts: [
         "bkash_number", "nagad_number", "bank_account_name", "bank_account_number", "bank_name", "bank_branch",
         "bank_routing_number", "bank_swift_code", "bank_iban", "bank_address", "bank_currencies", "intermediary_bank", "instructions",

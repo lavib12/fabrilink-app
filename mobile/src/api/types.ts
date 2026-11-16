@@ -310,8 +310,11 @@ export interface SourcingRequestInput {
 }
 
 export type PaymentMethod = "BKASH" | "NAGAD" | "BANK_TRANSFER" | "SSLCOMMERZ" | "B2B_CREDIT" | "COD";
-export type ManualPaymentMethod = "BKASH" | "NAGAD" | "BANK_TRANSFER";
-export const MANUAL_PAYMENT_METHODS: readonly PaymentMethod[] = ["BKASH", "NAGAD", "BANK_TRANSFER"];
+export type ManualPaymentMethod = "BKASH" | "NAGAD" | "BANK_TRANSFER" | "SSLCOMMERZ";
+/** Methods the buyer must pay before the order goes ahead (the payment panel shows for these). */
+export const MANUAL_PAYMENT_METHODS: readonly PaymentMethod[] = ["BKASH", "NAGAD", "BANK_TRANSFER", "SSLCOMMERZ"];
+/** Paid on the SSLCommerz page (bKash / Nagad / cards), like Daraz. */
+export const GATEWAY_METHODS: readonly PaymentMethod[] = ["BKASH", "NAGAD", "SSLCOMMERZ"];
 
 /** NOT_REQUIRED: COD / credit. AWAITING: proof not sent yet. Others: the latest proof's state. */
 export type OrderPaymentStatus = "NOT_REQUIRED" | "AWAITING" | "SUBMITTED" | "VERIFIED" | "REJECTED";

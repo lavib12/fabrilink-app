@@ -43,7 +43,7 @@ FULFILMENT_PIPELINE = [
 ]
 # Paid by sending money and proving it (TrxID / bank reference). These orders wait in
 # REQUESTED ("awaiting payment") until an admin verifies the proof in apps.payments.
-MANUAL_PAYMENT_METHODS = {"BKASH", "NAGAD", "BANK_TRANSFER"}
+MANUAL_PAYMENT_METHODS = {"BKASH", "NAGAD", "BANK_TRANSFER", "SSLCOMMERZ"}
 
 # Stock is only returned to the roll if the fabric hasn't been cut yet.
 CANCELLABLE_STATUSES = {

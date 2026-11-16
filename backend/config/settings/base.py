@@ -95,6 +95,13 @@ ASGI_APPLICATION = "config.asgi.application"
 # Custom User Model
 AUTH_USER_MODEL = "users.User"
 
+# SSLCommerz payment gateway (bKash, Nagad, cards, internet banking).
+# Defaults are SSLCommerz's public sandbox store; set your live store ID/password and
+# SSLCOMMERZ_SANDBOX=false to take real money. Sandbox payments are never auto-confirmed.
+SSLCOMMERZ_STORE_ID = os.getenv("SSLCOMMERZ_STORE_ID", "testbox")
+SSLCOMMERZ_STORE_PASSWORD = os.getenv("SSLCOMMERZ_STORE_PASSWORD", "qwerty")
+SSLCOMMERZ_SANDBOX = os.getenv("SSLCOMMERZ_SANDBOX", "True").lower() in ("true", "1", "yes")
+
 # When False (the default), new buyer companies are approved at sign-up and can order
 # without submitting a trade licence / TIN. Factories always need KYC approval.
 BUYER_KYC_REQUIRED = os.getenv("BUYER_KYC_REQUIRED", "False").lower() in ("true", "1", "yes")

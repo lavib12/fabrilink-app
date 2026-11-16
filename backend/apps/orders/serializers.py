@@ -104,7 +104,7 @@ class OrderTrackingEventSerializer(serializers.ModelSerializer):
         ]
 
 
-MANUAL_PAYMENT_METHODS = {"BKASH", "NAGAD", "BANK_TRANSFER"}
+MANUAL_PAYMENT_METHODS = {"BKASH", "NAGAD", "BANK_TRANSFER", "SSLCOMMERZ"}
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):

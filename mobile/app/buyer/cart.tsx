@@ -12,6 +12,7 @@ import { YardPicker } from "@/components/YardPicker";
 import { useAddToCart, useCart, useCheckout, useRemoveCartItem } from "@/hooks/queries";
 import { checkBreakdown } from "@/lib/breakdown";
 import { formatBDT, formatNumber, toNumber } from "@/lib/format";
+import { isGatewayMethod, openOnlinePayment } from "@/lib/onlinePayment";
 import { showPurchaseError } from "@/lib/purchaseErrors";
 import { needsKyc } from "@/lib/routing";
 import { useAuth } from "@/store/auth";
@@ -64,6 +65,7 @@ export default function CartScreen() {
         delivery_notes: notes.trim() || undefined,
       });
       router.push({ pathname: "/order/[id]", params: { id: order.id } });
+      if (isGatewayMethod(order.payment_method)) void openOnlinePayment(order.id, t);
     } catch (err) {
       showPurchaseError(err, t);
     }

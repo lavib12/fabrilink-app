@@ -17,6 +17,11 @@ export const paymentsApi = {
     const res = await apiClient.patch("/payments/accounts/", input);
     return res.data.data;
   },
+  /** Starts an SSLCommerz payment for an order and returns the page to open. */
+  async startGateway(orderId: string): Promise<{ url: string; tran_id: string; sandbox: boolean }> {
+    const res = await apiClient.post(`/payments/orders/${orderId}/gateway/`);
+    return res.data.data;
+  },
   async forOrder(orderId: string): Promise<PaymentSubmission[]> {
     const res = await apiClient.get(`/payments/orders/${orderId}/`);
     return res.data.data;

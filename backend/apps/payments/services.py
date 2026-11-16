@@ -15,6 +15,7 @@ from common.exceptions import (
 
 from .models import (
     MANUAL_METHODS,
+    PREPAID_METHODS,
     ManualPaymentMethod,
     PaymentSubmission,
     SubmissionStatus,
@@ -165,7 +166,7 @@ def record_payment_by_admin(*, order: Order, actor, transaction_id: str, amount=
     phoned in their TrxID, or is still on an older app version without the payment screen.
     """
     order = Order.objects.select_for_update().get(id=order.id)
-    if order.payment_method not in MANUAL_METHODS:
+    if order.payment_method not in PREPAID_METHODS:
         raise ValidationError("This order doesn't need a payment proof.")
     if order.status != OrderStatusChoices.REQUESTED:
         raise InvalidStateTransitionError("This order isn't waiting for payment.")

@@ -1,6 +1,9 @@
 from django.urls import path
 
 from .views import (
+    GatewayIPNView,
+    GatewayReturnView,
+    GatewayStartView,
     OrderPaymentView,
     OrderRecordPaymentView,
     PaymentAccountsView,
@@ -18,6 +21,13 @@ urlpatterns = [
     path("receipts/<uuid:receipt_id>/", ReceiptFileView.as_view(), name="receipt_file"),
     path("orders/<uuid:order_id>/", OrderPaymentView.as_view(), name="order_payments"),
     path("orders/<uuid:order_id>/record/", OrderRecordPaymentView.as_view(), name="order_record"),
+    path("orders/<uuid:order_id>/gateway/", GatewayStartView.as_view(), name="gateway_start"),
+    path("gateway/ipn/", GatewayIPNView.as_view(), name="gateway_ipn"),
+    path(
+        "gateway/<str:outcome>/",
+        GatewayReturnView.as_view(),
+        name="gateway_return",
+    ),
     path("submissions/", PaymentSubmissionListView.as_view(), name="submission_list"),
     path(
         "submissions/<uuid:submission_id>/review/",
