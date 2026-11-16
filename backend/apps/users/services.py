@@ -1,5 +1,6 @@
 from typing import Any
 
+from django.conf import settings
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -50,13 +51,18 @@ def register_user(
         CompanyTypeChoices.FACTORY if role == RoleChoices.FACTORY else CompanyTypeChoices.BUYER
     )
 
+    # Buyers can order straight away unless BUYER_KYC_REQUIRED is switched on. Factories
+    # always go through KYC because they list fabric and receive payouts.
+    approve_now = co_type == CompanyTypeChoices.BUYER and not settings.BUYER_KYC_REQUIRED
     Company.objects.create(
         user=user,
         name=company_name.strip(),
         company_type=co_type,
         contact_email=user.email,
         contact_phone=user.phone,
-        verification_status=VerificationStatusChoices.PENDING,
+        verification_status=(
+            VerificationStatusChoices.APPROVED if approve_now else VerificationStatusChoices.PENDING
+        ),
     )
 
     refresh = RefreshToken.for_user(user)

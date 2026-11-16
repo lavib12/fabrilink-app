@@ -95,6 +95,10 @@ ASGI_APPLICATION = "config.asgi.application"
 # Custom User Model
 AUTH_USER_MODEL = "users.User"
 
+# When False (the default), new buyer companies are approved at sign-up and can order
+# without submitting a trade licence / TIN. Factories always need KYC approval.
+BUYER_KYC_REQUIRED = os.getenv("BUYER_KYC_REQUIRED", "False").lower() in ("true", "1", "yes")
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
