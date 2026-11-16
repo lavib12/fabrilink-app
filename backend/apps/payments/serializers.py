@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal
 
 from django.urls import reverse
@@ -13,6 +14,36 @@ class PaymentSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentSettings
         exclude = ["id"]
+        read_only_fields = ["updated_at"]
+
+    def _wallet(self, value):
+        digits = re.sub(r"\D", "", value or "")
+        if digits.startswith("880"):
+            digits = digits[2:]
+        if digits and not re.fullmatch(r"01[3-9]\d{8}", digits):
+            raise serializers.ValidationError("Enter an 11-digit number such as 01712345678.")
+        return digits
+
+    def validate_bkash_number(self, value):
+        return self._wallet(value)
+
+    def validate_nagad_number(self, value):
+        return self._wallet(value)
+
+    def validate_bank_routing_number(self, value):
+        value = re.sub(r"\s", "", value or "")
+        if value and not re.fullmatch(r"\d{9}", value):
+            raise serializers.ValidationError("A Bangladesh routing number has 9 digits.")
+        return value
+
+    def validate_bank_swift_code(self, value):
+        value = re.sub(r"\s", "", value or "").upper()
+        if value and not re.fullmatch(r"[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?", value):
+            raise serializers.ValidationError("A SWIFT/BIC code has 8 or 11 characters, e.g. BALBBDDH.")
+        return value
+
+    def validate_bank_account_number(self, value):
+        return re.sub(r"\s", "", value or "")
 
 
 class PaymentSubmissionSerializer(serializers.ModelSerializer):

@@ -55,6 +55,11 @@ describe("translation coverage", () => {
       "pay.status": ["AWAITING", "SUBMITTED", "VERIFIED", "REJECTED"],
       "pay.walletSteps": ["PERSONAL", "MERCHANT", "AGENT"],
       "pay.form.chargesHint": ["OUR", "SHA", "BEN"],
+      "accounts.type": ["PERSONAL", "MERCHANT", "AGENT"],
+      accounts: [
+        "bkash_number", "nagad_number", "bank_account_name", "bank_account_number", "bank_name", "bank_branch",
+        "bank_routing_number", "bank_swift_code", "bank_iban", "bank_address", "bank_currencies", "intermediary_bank", "instructions",
+      ],
       "requests.status": ["OPEN", "FULFILLED", "CLOSED"],
       "samples.status": ["REQUESTED", "ACCEPTED", "SHIPPED", "DELIVERED", "DECLINED", "CANCELLED"],
       "samples.size": ["A4", "HALF_YARD", "ONE_YARD"],

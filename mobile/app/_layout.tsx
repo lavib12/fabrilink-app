@@ -85,6 +85,7 @@ export default function RootLayout() {
           <Stack.Screen name="mill/[id]" options={{ title: t("mill.title") }} />
           <Stack.Screen name="order/[id]" options={{ title: t("orders.detailTitle") }} />
           <Stack.Screen name="samples/index" options={{ title: t("samples.title") }} />
+          <Stack.Screen name="payment-accounts" options={{ title: t("accounts.title") }} />
         </Stack>
       </QueryClientProvider>
     </SafeAreaProvider>

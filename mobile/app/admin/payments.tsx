@@ -8,7 +8,7 @@ import { getErrorMessage } from "@/api/errors";
 import type { PaymentSubmission, SubmissionStatus } from "@/api/types";
 import { SubmissionExtras } from "@/components/PaymentPanel";
 import { Badge, Button, Card, Chip, EmptyState, ErrorState, KeyValue, ListSkeleton, PressableCard, Row, Sheet, Text, TextField, type Tone } from "@/components/ui";
-import { usePaymentQueue, useReviewPayment } from "@/hooks/queries";
+import { usePaymentAccounts, usePaymentQueue, useReviewPayment } from "@/hooks/queries";
 import { formatBDT, formatDate, formatDateTime, toNumber } from "@/lib/format";
 import { spacing, useTheme } from "@/theme";
 
@@ -41,6 +41,7 @@ export default function AdminPaymentsScreen() {
         contentContainerStyle={{ padding: spacing.md, gap: spacing.md, flexGrow: 1 }}
         ListHeaderComponent={
           <View style={{ gap: spacing.sm }}>
+            <AccountsCard />
             <Text muted>{t("pay.admin.intro")}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {FILTERS.map((f) => (
@@ -84,6 +85,46 @@ export default function AdminPaymentsScreen() {
         />
       ) : null}
     </>
+  );
+}
+
+/** Shows whether buyers can pay by bKash / Nagad / bank yet, with a shortcut to set it up. */
+function AccountsCard() {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const accounts = usePaymentAccounts();
+  const a = accounts.data;
+  if (!a) return null;
+  const ready = [
+    { label: "bKash", ok: Boolean(a.bkash_number) },
+    { label: "Nagad", ok: Boolean(a.nagad_number) },
+    { label: t("accounts.bank"), ok: Boolean(a.bank_account_number && a.bank_name) },
+  ];
+  const allSet = ready.every((r) => r.ok);
+  return (
+    <PressableCard
+      onPress={() => router.push("/payment-accounts")}
+      accessibilityLabel={t("accounts.title")}
+      style={{ gap: spacing.xs, borderColor: allSet ? colors.border : colors.warning, backgroundColor: allSet ? colors.surface : colors.warningSoft }}
+    >
+      <Row style={{ justifyContent: "space-between" }}>
+        <Text variant="label">{t("accounts.title")}</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      </Row>
+      <Row style={{ flexWrap: "wrap", gap: spacing.md }}>
+        {ready.map((r) => (
+          <Row key={r.label} style={{ gap: 4 }}>
+            <Ionicons name={r.ok ? "checkmark-circle" : "alert-circle"} size={16} color={r.ok ? colors.success : colors.warning} />
+            <Text variant="caption">{r.label}</Text>
+          </Row>
+        ))}
+      </Row>
+      {!allSet ? (
+        <Text variant="caption" color={colors.warning}>
+          {t("accounts.notReady")}
+        </Text>
+      ) : null}
+    </PressableCard>
   );
 }
 

@@ -12,6 +12,11 @@ export const paymentsApi = {
     const res = await apiClient.get("/payments/accounts/");
     return res.data.data;
   },
+  /** Admin: change where buyers send money. */
+  async updateAccounts(input: Partial<PaymentAccounts>): Promise<PaymentAccounts> {
+    const res = await apiClient.patch("/payments/accounts/", input);
+    return res.data.data;
+  },
   async forOrder(orderId: string): Promise<PaymentSubmission[]> {
     const res = await apiClient.get(`/payments/orders/${orderId}/`);
     return res.data.data;

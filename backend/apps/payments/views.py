@@ -38,6 +38,16 @@ class PaymentAccountsView(APIView):
     def get(self, request):
         return Response({"success": True, "data": PaymentSettingsSerializer(PaymentSettings.load()).data})
 
+    @extend_schema(request=PaymentSettingsSerializer, responses={200: PaymentSettingsSerializer})
+    def patch(self, request):
+        """Admins edit where buyers send money, from the app."""
+        if not _is_admin(request.user):
+            raise PermissionDeniedError("Only administrators can change payment accounts.")
+        serializer = PaymentSettingsSerializer(PaymentSettings.load(), data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"success": True, "message": "Payment accounts saved.", "data": serializer.data})
+
 
 class ReceiptUploadView(APIView):
     """Buyer uploads a payment screenshot or bank slip before submitting the proof."""

@@ -644,5 +644,38 @@
     "body": "FabriLink has been updated with new features. Restart now to use them.",
     "later": "Later",
     "restart": "Restart"
+  },
+  "accounts": {
+    "title": "Payment receiving accounts",
+    "intro": "Buyers see these details when they pay by bKash, Nagad or bank transfer. Check every number carefully: money is sent straight to them.",
+    "bank": "Bank account",
+    "accountType": "Account type",
+    "type": {
+      "PERSONAL": "Personal (Send Money)",
+      "MERCHANT": "Merchant (Payment)",
+      "AGENT": "Agent (Cash In)"
+    },
+    "bkash_number": "bKash number",
+    "nagad_number": "Nagad number",
+    "bank_account_name": "Account name",
+    "bank_account_number": "Account number",
+    "bank_name": "Bank name",
+    "bank_branch": "Branch",
+    "bank_routing_number": "Routing number",
+    "bank_swift_code": "SWIFT / BIC code",
+    "bank_iban": "IBAN",
+    "bank_address": "Bank address",
+    "bank_currencies": "Currencies accepted",
+    "intermediary_bank": "Intermediary bank",
+    "instructions": "Note for buyers",
+    "routingHint": "9 digits, for BEFTN/RTGS. It's on your cheque book, or ask your branch.",
+    "swiftHint": "For payments from abroad. Confirm it with your bank.",
+    "currenciesHint": "e.g. BDT, or BDT, USD if the account can receive foreign currency.",
+    "intermediaryHint": "Optional. Only if your bank asks senders of USD/EUR to use one.",
+    "instructionsHint": "Optional. Shown under the payment details.",
+    "optional": "Optional.",
+    "save": "Save",
+    "saved": "Saved. Buyers now see these details.",
+    "notReady": "Buyers can't pay by the methods marked ! until you add the details. Tap to set up."
   }
 }

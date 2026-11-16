@@ -166,6 +166,7 @@ export function ProfileScreen() {
         ) : null}
         {user.role === "ADMIN" ? (
           <>
+            <LinkRow icon="card-outline" label={t("accounts.title")} onPress={() => router.push("/payment-accounts")} />
             <LinkRow icon="search-outline" label={t("profile.linkAllRequests")} onPress={() => router.push("/requests")} />
             <LinkRow icon="cube-outline" label={t("profile.linkSampleRequests")} onPress={() => router.push("/samples")} last />
           </>

@@ -10,6 +10,7 @@ import type {
   Cart,
   FabricRollCreate,
   OrderStatus,
+  PaymentAccounts,
   PaymentSubmitInput,
   SubmissionStatus,
   RollFilters,
@@ -162,6 +163,14 @@ export function useSetSampleStatus() {
 
 export const usePaymentAccounts = (enabled = true) =>
   useQuery({ queryKey: ["payment-accounts"], queryFn: paymentsApi.accounts, staleTime: 5 * 60_000, enabled });
+
+export function useUpdatePaymentAccounts() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: Partial<PaymentAccounts>) => paymentsApi.updateAccounts(input),
+    onSuccess: (data) => qc.setQueryData(["payment-accounts"], data),
+  });
+}
 
 export const useOrderPayments = (orderId: string | undefined, enabled = true) =>
   useQuery({
