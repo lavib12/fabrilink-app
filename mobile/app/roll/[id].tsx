@@ -6,13 +6,14 @@ import { useTranslation } from "react-i18next";
 import { Linking, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { PaymentMethod } from "@/api/types";
+import type { PaymentMethod, SampleStatus, SwatchSize } from "@/api/types";
 import { FeeBreakdown } from "@/components/FeeBreakdown";
 import { PaymentMethodPicker } from "@/components/PaymentMethodPicker";
 import { FALLBACK_FABRIC_IMAGE } from "@/components/RollCard";
-import { Badge, Button, Card, ColorDot, ErrorState, KeyValue, LoadingState, PressableCard, Row, Sheet, Text, TextField } from "@/components/ui";
+import { Badge, Button, Card, Chip, ColorDot, ErrorState, KeyValue, LoadingState, PressableCard, Row, Sheet, Text, TextField } from "@/components/ui";
 import { YardPicker } from "@/components/YardPicker";
-import { useAddToCart, useCheckout, useRoll } from "@/hooks/queries";
+import { useAddToCart, useCheckout, useCreateSampleRequest, useRoll, useSampleRequests } from "@/hooks/queries";
+import { getErrorMessage } from "@/api/errors";
 import { checkBreakdown } from "@/lib/breakdown";
 import { formatBDT, formatNumber, toNumber } from "@/lib/format";
 import { estimateFees } from "@/lib/pricing";
@@ -37,6 +38,11 @@ export default function RollDetailScreen() {
   const [buyOpen, setBuyOpen] = useState(false);
   const [payment, setPayment] = useState<PaymentMethod>("BKASH");
   const [notes, setNotes] = useState("");
+  const [sampleOpen, setSampleOpen] = useState(false);
+
+  const isBuyerUser = user?.role === "BUYER";
+  const samples = useSampleRequests({ roll: id }, Boolean(id) && isBuyerUser);
+  const openSample = samples.data?.find((s) => OPEN_SAMPLE.includes(s.status));
 
   const data = roll.data;
   const available = toNumber(data?.available_yards);
@@ -202,6 +208,31 @@ export default function RollDetailScreen() {
             </Card>
           ) : null}
 
+          {data.is_sample_available && (isBuyer || !user) ? (
+            <Card style={{ gap: spacing.sm }}>
+              <Row>
+                <Ionicons name="color-palette-outline" size={22} color={colors.primary} />
+                <Text variant="subheading" style={{ flex: 1 }}>
+                  {t("roll.requestSample")}
+                </Text>
+              </Row>
+              <Text muted>{t("roll.sampleIntro")}</Text>
+              {openSample ? (
+                <Row style={{ justifyContent: "space-between" }}>
+                  <Badge label={t("roll.sampleOpen", { status: t(`samples.status.${openSample.status}`) })} tone="info" />
+                  <Button title={t("roll.viewSamples")} variant="ghost" small fullWidth={false} onPress={() => router.push("/samples")} />
+                </Row>
+              ) : (
+                <Button
+                  title={t("roll.requestSample")}
+                  variant="secondary"
+                  icon={<Ionicons name="cube-outline" size={18} color={colors.text} />}
+                  onPress={() => (requireBuyer() ? setSampleOpen(true) : undefined)}
+                />
+              )}
+            </Card>
+          ) : null}
+
           {data.mill_contact_phone ? (
             <Button
               title={t("roll.callMill")}
@@ -259,7 +290,94 @@ export default function RollDetailScreen() {
         <PaymentMethodPicker value={payment} onChange={setPayment} />
         <TextField label={t("checkout.deliveryNotes")} value={notes} onChangeText={setNotes} multiline />
       </Sheet>
+
+      {sampleOpen ? (
+        <SampleSheet
+          rollId={data.id}
+          samplePrice={toNumber(data.sample_price)}
+          onClose={() => setSampleOpen(false)}
+          onSent={() => {
+            setSampleOpen(false);
+            setNotice(t("roll.sampleSent"));
+          }}
+        />
+      ) : null}
     </View>
+  );
+}
+
+const OPEN_SAMPLE: SampleStatus[] = ["REQUESTED", "ACCEPTED", "SHIPPED"];
+const SWATCH_SIZES: SwatchSize[] = ["A4", "HALF_YARD", "ONE_YARD"];
+
+function SampleSheet({
+  rollId,
+  samplePrice,
+  onClose,
+  onSent,
+}: {
+  rollId: string;
+  samplePrice: number;
+  onClose: () => void;
+  onSent: () => void;
+}) {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const create = useCreateSampleRequest();
+  const [size, setSize] = useState<SwatchSize>("A4");
+  const [notes, setNotes] = useState("");
+  const [address, setAddress] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const send = async () => {
+    setError(null);
+    try {
+      await create.mutateAsync({
+        fabric_roll: rollId,
+        swatch_size: size,
+        notes: notes.trim() || undefined,
+        delivery_address: address.trim() || undefined,
+      });
+      onSent();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  return (
+    <Sheet
+      visible
+      onClose={onClose}
+      title={t("roll.sampleTitle")}
+      footer={<Button title={t("roll.sendSampleRequest")} onPress={() => void send()} loading={create.isPending} />}
+    >
+      <Text muted>{t("roll.sampleIntro")}</Text>
+      {samplePrice > 0 ? <Text variant="label">{t("roll.samplePrice", { price: formatBDT(samplePrice) })}</Text> : null}
+      <Text variant="label">{t("roll.swatchSize")}</Text>
+      <Row style={{ flexWrap: "wrap" }}>
+        {SWATCH_SIZES.map((s) => (
+          <Chip key={s} label={t(`samples.size.${s}`)} selected={size === s} onPress={() => setSize(s)} />
+        ))}
+      </Row>
+      <TextField
+        label={t("roll.sampleNotes")}
+        value={notes}
+        onChangeText={setNotes}
+        placeholder={t("roll.sampleNotesPlaceholder")}
+        multiline
+      />
+      <TextField
+        label={t("roll.sampleAddress")}
+        value={address}
+        onChangeText={setAddress}
+        hint={t("roll.sampleAddressHint")}
+        multiline
+      />
+      {error ? (
+        <Text color={colors.danger} accessibilityLiveRegion="assertive">
+          {error}
+        </Text>
+      ) : null}
+    </Sheet>
   );
 }
 

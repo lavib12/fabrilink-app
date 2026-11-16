@@ -151,3 +151,26 @@ class FabricRollImage(UUIDModel, TimeStampedModel):
 
     def __str__(self):
         return f"Image for {self.fabric_roll.roll_code}"
+
+
+class UploadedImage(UUIDModel, TimeStampedModel):
+    """
+    A listing photo uploaded from the app. The bytes live in the database so they
+    survive restarts on hosts with a temporary disk (such as Render's free plan).
+    Photos are re-encoded as JPEG and capped in size on upload.
+    """
+
+    uploaded_by = models.ForeignKey(
+        "users.User", on_delete=models.SET_NULL, null=True, related_name="uploaded_images"
+    )
+    company = models.ForeignKey(
+        Company, on_delete=models.CASCADE, null=True, related_name="uploaded_images"
+    )
+    content_type = models.CharField(max_length=50, default="image/jpeg")
+    data = models.BinaryField()
+    width = models.PositiveIntegerField(default=0)
+    height = models.PositiveIntegerField(default=0)
+    size_bytes = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"Upload {self.id} ({self.width}x{self.height})"

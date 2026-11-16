@@ -1,12 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch, type FieldPath } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import { catalogApi } from "@/api/endpoints/catalog";
 import { companiesApi } from "@/api/endpoints/companies";
 import { getErrorMessage, getFieldErrors } from "@/api/errors";
 import type { FabricRollCreate } from "@/api/types";
@@ -34,6 +36,10 @@ const SWATCHES: { name: string; hex: string }[] = [
 ];
 
 const GRADES = ["GRADE_A", "GRADE_B", "SURPLUS_FRESH", "REMNANT"] as const;
+const MAX_PHOTOS = 6;
+
+/** A picked photo: shown at once from the phone, `url` is set once the upload finishes. */
+type Photo = { key: string; asset: ImagePicker.ImagePickerAsset; url?: string; failed?: boolean };
 
 const STEPS: { key: string; fields: FieldPath<RollFormValues>[] }[] = [
   { key: "type", fields: ["mode", "target_buyer_id", "buyer_spec_notes"] },
@@ -72,6 +78,47 @@ export default function NewListingScreen() {
   const isAdmin = useAuth((s) => s.user?.role === "ADMIN");
   const [step, setStep] = useState(0);
   const [adminFactoryId, setAdminFactoryId] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const uploading = photos.some((p) => !p.url && !p.failed);
+
+  const uploadPhoto = async (photo: Photo) => {
+    setPhotos((ps) => ps.map((p) => (p.key === photo.key ? { ...p, failed: false } : p)));
+    try {
+      const img = await catalogApi.uploadImage(photo.asset);
+      setPhotos((ps) => ps.map((p) => (p.key === photo.key ? { ...p, url: img.url } : p)));
+    } catch (err) {
+      setPhotos((ps) => ps.map((p) => (p.key === photo.key ? { ...p, failed: true } : p)));
+      Alert.alert(t("listing.uploadFailed"), getErrorMessage(err));
+    }
+  };
+
+  const pickPhotos = async (fromCamera: boolean) => {
+    const room = MAX_PHOTOS - photos.length;
+    if (room <= 0) {
+      Alert.alert(t("listing.photoLimit"));
+      return;
+    }
+    const permission = fromCamera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(t("listing.photos"), t("listing.photoPermission"));
+      return;
+    }
+    const options: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ["images"],
+      quality: 0.8,
+      allowsMultipleSelection: !fromCamera,
+      selectionLimit: room,
+    };
+    const result = fromCamera
+      ? await ImagePicker.launchCameraAsync(options)
+      : await ImagePicker.launchImageLibraryAsync(options);
+    if (result.canceled) return;
+    const added = result.assets.slice(0, room).map((asset, i) => ({ key: `${Date.now()}-${i}-${asset.uri}`, asset }));
+    setPhotos((ps) => [...ps, ...added]);
+    for (const photo of added) void uploadPhoto(photo);
+  };
 
   const categories = useCategories();
   const buyers = useBuyers();
@@ -112,6 +159,10 @@ export default function NewListingScreen() {
   };
 
   const submit = handleSubmit(async (v) => {
+    if (uploading) {
+      Alert.alert(t("listing.photos"), t("listing.uploading"));
+      return;
+    }
     const payload: FabricRollCreate = {
       title: v.title.trim(),
       fabric_type: v.fabric_type,
@@ -129,6 +180,7 @@ export default function NewListingScreen() {
       lot_batch_number: v.lot_batch_number?.trim() || undefined,
       defect_notes: v.defect_notes?.trim() || undefined,
       image_url: v.image_url?.trim() || undefined,
+      image_urls: photos.flatMap((p) => (p.url ? [p.url] : [])),
       target_buyer_id: v.mode === "CUSTOM" ? v.target_buyer_id || null : null,
       buyer_spec_notes: v.mode === "CUSTOM" ? v.buyer_spec_notes?.trim() : undefined,
       factory_id: isAdmin ? adminFactoryId ?? undefined : undefined,
@@ -137,6 +189,7 @@ export default function NewListingScreen() {
       const { roll, message } = await createRoll.mutateAsync(payload);
       Alert.alert(t("listing.successTitle"), message);
       reset(DEFAULTS);
+      setPhotos([]);
       setStep(0);
       router.push({ pathname: "/roll/[id]", params: { id: roll.id } });
     } catch (err) {
@@ -335,22 +388,93 @@ export default function NewListingScreen() {
 
         {step === 4 ? (
           <Card style={{ gap: spacing.lg }}>
+            <View style={{ gap: 4 }}>
+              <Text variant="label">{t("listing.photos")}</Text>
+              <Text variant="caption" muted>
+                {t("listing.photosHint")}
+              </Text>
+            </View>
+            <Row style={{ gap: spacing.md }}>
+              <Button
+                title={t("listing.takePhoto")}
+                variant="secondary"
+                icon={<Ionicons name="camera-outline" size={18} color={colors.text} />}
+                onPress={() => void pickPhotos(true)}
+                disabled={photos.length >= MAX_PHOTOS}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title={t("listing.pickPhotos")}
+                variant="secondary"
+                icon={<Ionicons name="images-outline" size={18} color={colors.text} />}
+                onPress={() => void pickPhotos(false)}
+                disabled={photos.length >= MAX_PHOTOS}
+                style={{ flex: 1 }}
+              />
+            </Row>
+
+            {photos.length ? (
+              <View style={styles.photoGrid}>
+                {photos.map((p, i) => (
+                  <View key={p.key} style={styles.photoCell}>
+                    <Pressable
+                      style={styles.photo}
+                      onPress={p.failed ? () => void uploadPhoto(p) : undefined}
+                      accessibilityRole={p.failed ? "button" : "image"}
+                      accessibilityLabel={p.failed ? t("common.retry") : `${t("listing.photos")} ${i + 1}`}
+                    >
+                      <Image source={{ uri: p.asset.uri }} style={[styles.photo, { backgroundColor: colors.surfaceMuted }]} contentFit="cover" />
+                      {!p.url ? (
+                        <View style={[styles.photoOverlay, { backgroundColor: p.failed ? "rgba(160,30,30,0.6)" : "rgba(0,0,0,0.45)" }]}>
+                          {p.failed ? (
+                            <Ionicons name="refresh" size={26} color="#fff" />
+                          ) : (
+                            <ActivityIndicator color="#fff" />
+                          )}
+                        </View>
+                      ) : null}
+                    </Pressable>
+                    {i === 0 ? (
+                      <View style={[styles.coverTag, { backgroundColor: colors.primary }]}>
+                        <Text variant="caption" color={colors.primaryText} style={{ fontWeight: "700" }}>
+                          {t("listing.cover")}
+                        </Text>
+                      </View>
+                    ) : null}
+                    <Pressable
+                      onPress={() => setPhotos((ps) => ps.filter((x) => x.key !== p.key))}
+                      accessibilityRole="button"
+                      accessibilityLabel={t("listing.removePhoto", { n: i + 1 })}
+                      hitSlop={10}
+                      style={[styles.removeBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                    >
+                      <Ionicons name="close" size={16} color={colors.text} />
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={[styles.preview, { backgroundColor: colors.surfaceMuted, alignItems: "center", justifyContent: "center", gap: spacing.sm }]}>
+                <Ionicons name="image-outline" size={40} color={colors.textMuted} />
+                <Text variant="caption" muted center style={{ paddingHorizontal: spacing.lg }}>
+                  {t("listing.imageHint")}
+                </Text>
+              </View>
+            )}
+            {uploading ? (
+              <Text variant="caption" muted>
+                {t("listing.uploading")}
+              </Text>
+            ) : null}
+
             <FormField
               control={control}
               name="image_url"
-              label={t("listing.imageUrl")}
+              label={t("listing.orLink")}
               autoCapitalize="none"
               keyboardType="url"
               placeholder="https://…"
-              hint={t("listing.imageHint")}
             />
-            {values.image_url && /^https?:\/\//.test(values.image_url) ? (
-              <Image source={{ uri: values.image_url }} style={styles.preview} contentFit="cover" />
-            ) : (
-              <View style={[styles.preview, { backgroundColor: colors.surfaceMuted, alignItems: "center", justifyContent: "center" }]}>
-                <Ionicons name="image-outline" size={40} color={colors.textMuted} />
-              </View>
-            )}
           </Card>
         ) : null}
 
@@ -374,6 +498,10 @@ export default function NewListingScreen() {
             <KeyValue label={t("roll.minCut")} value={`${values.min_cut_length_yards} ${t("common.yd")}`} />
             <KeyValue label={t("listing.pricePerYard")} value={formatBDT(values.price_per_yard ?? 0)} />
             <KeyValue label={t("listing.grade")} value={t(`grade.${values.quality_grade}`)} />
+            <KeyValue
+              label={t("listing.photos")}
+              value={t("listing.photoCount", { count: photos.filter((p) => p.url).length + (values.image_url?.trim() ? 1 : 0) })}
+            />
           </Card>
         ) : null}
 
@@ -433,5 +561,30 @@ const styles = StyleSheet.create({
   swatchGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
   swatch: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: radius.md },
   preview: { width: "100%", aspectRatio: 4 / 3, borderRadius: radius.md },
+  photoGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  photoCell: { width: "31%", aspectRatio: 1 },
+  photo: { width: "100%", height: "100%", borderRadius: radius.md },
+  photoOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  coverTag: { position: "absolute", left: 4, bottom: 4, paddingHorizontal: 6, borderRadius: radius.sm },
+  removeBtn: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   mode: { flexDirection: "row", alignItems: "center", gap: spacing.md, borderWidth: 1.5, borderRadius: radius.md, padding: spacing.md },
 });

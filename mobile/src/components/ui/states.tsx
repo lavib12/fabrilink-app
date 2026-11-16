@@ -45,7 +45,12 @@ export function EmptyState({
         </Text>
       ) : null}
       {actionLabel && onAction ? (
-        <Button title={actionLabel} onPress={onAction} fullWidth={false} style={{ marginTop: spacing.sm }} />
+        <Button
+          title={actionLabel}
+          onPress={onAction}
+          fullWidth={false}
+          style={{ marginTop: spacing.sm, alignSelf: "center" }}
+        />
       ) : null}
     </View>
   );
@@ -69,7 +74,13 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
         {getErrorMessage(error)}
       </Text>
       {onRetry ? (
-        <Button title={t("common.retry")} onPress={onRetry} fullWidth={false} variant="secondary" />
+        <Button
+          title={t("common.retry")}
+          onPress={onRetry}
+          fullWidth={false}
+          variant="secondary"
+          style={{ alignSelf: "center" }}
+        />
       ) : null}
     </View>
   );

@@ -149,6 +149,10 @@ class FabricRollDetailSerializer(serializers.ModelSerializer):
 
 class FabricRollCreateSerializer(serializers.ModelSerializer):
     image_url = serializers.CharField(required=False, allow_blank=True)
+    # Up to 6 photos; the first becomes the cover. Uploaded photos arrive here as URLs.
+    image_urls = serializers.ListField(
+        child=serializers.RegexField(r"^https?://\S+$", max_length=500), required=False, max_length=6
+    )
     target_buyer_id = serializers.UUIDField(required=False, allow_null=True)
 
     class Meta:
@@ -173,6 +177,7 @@ class FabricRollCreateSerializer(serializers.ModelSerializer):
             "is_sample_available",
             "sample_price",
             "image_url",
+            "image_urls",
             "target_buyer_id",
             "is_custom_profile",
             "buyer_spec_notes",

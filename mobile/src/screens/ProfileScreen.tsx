@@ -146,12 +146,14 @@ export function ProfileScreen() {
         {user.role === "BUYER" ? (
           <>
             <LinkRow icon="search-outline" label={t("profile.linkRequests")} onPress={() => router.push("/requests")} />
+            <LinkRow icon="cube-outline" label={t("profile.linkSamples")} onPress={() => router.push("/samples")} />
             <LinkRow icon="wallet-outline" label={t("profile.linkCredit")} onPress={() => router.push("/credit")} last />
           </>
         ) : null}
         {user.role === "FACTORY" ? (
           <>
             <LinkRow icon="megaphone-outline" label={t("profile.linkBuyerRequests")} onPress={() => router.push("/requests")} />
+            <LinkRow icon="cube-outline" label={t("profile.linkSampleRequests")} onPress={() => router.push("/samples")} />
             {company ? (
               <LinkRow
                 icon="storefront-outline"
@@ -163,7 +165,10 @@ export function ProfileScreen() {
           </>
         ) : null}
         {user.role === "ADMIN" ? (
-          <LinkRow icon="search-outline" label={t("profile.linkAllRequests")} onPress={() => router.push("/requests")} last />
+          <>
+            <LinkRow icon="search-outline" label={t("profile.linkAllRequests")} onPress={() => router.push("/requests")} />
+            <LinkRow icon="cube-outline" label={t("profile.linkSampleRequests")} onPress={() => router.push("/samples")} last />
+          </>
         ) : null}
         {user.role === "HUB_STAFF" ? (
           <LinkRow icon="barcode-outline" label={t("tabs.scan")} onPress={() => router.navigate("/hub/scan")} last />

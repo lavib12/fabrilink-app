@@ -43,6 +43,13 @@
         }
       ],
       "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FabriLink lets mills add photos of their fabric rolls from the gallery.",
+          "cameraPermission": "FabriLink uses the camera to photograph fabric rolls and scan order barcodes."
+        }
+      ],
       ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
     ],
     "extra": {

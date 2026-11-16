@@ -6,7 +6,7 @@ import { RefreshControl, ScrollView, View } from "react-native";
 
 import { StatusBadge } from "@/components/orders";
 import { Button, Card, Divider, ErrorState, KeyValue, ListSkeleton, PressableCard, Row, Text } from "@/components/ui";
-import { useOrders, useRolls, useSourcingRequests } from "@/hooks/queries";
+import { useOrders, useRolls, useSampleRequests, useSourcingRequests } from "@/hooks/queries";
 import { computeFactoryKpis } from "@/lib/factoryStats";
 import { formatBDT, formatNumber } from "@/lib/format";
 import { useAuth } from "@/store/auth";
@@ -21,11 +21,14 @@ export default function FactoryDashboard() {
   const rolls = useRolls(MINE);
   const orders = useOrders();
   const requests = useSourcingRequests("OPEN");
+  const samples = useSampleRequests({ status: "REQUESTED" });
+  const waitingSamples = samples.data?.length ?? 0;
 
   const refreshing = rolls.isRefetching || orders.isRefetching;
   const refresh = () => {
     void rolls.refetch();
     void orders.refetch();
+    void samples.refetch();
   };
 
   if (rolls.isPending || orders.isPending) return <ListSkeleton rows={4} />;
@@ -75,6 +78,27 @@ export default function FactoryDashboard() {
           </Row>
           <Text variant="caption" muted>
             {t("factory.requestsTeaserBody")}
+          </Text>
+        </PressableCard>
+      ) : null}
+
+      {waitingSamples > 0 ? (
+        <PressableCard
+          onPress={() => router.push("/samples")}
+          style={{ backgroundColor: colors.primarySoft, borderColor: colors.primary, gap: 4 }}
+          accessibilityLabel={t("factory.samplesTeaser", { count: waitingSamples })}
+        >
+          <Row style={{ justifyContent: "space-between" }}>
+            <Row style={{ flex: 1, gap: spacing.sm }}>
+              <Ionicons name="cube-outline" size={20} color={colors.primary} />
+              <Text variant="label" color={colors.primary} style={{ flex: 1 }}>
+                {t("factory.samplesTeaser", { count: waitingSamples })}
+              </Text>
+            </Row>
+            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+          </Row>
+          <Text variant="caption" muted>
+            {t("factory.samplesTeaserBody")}
           </Text>
         </PressableCard>
       ) : null}

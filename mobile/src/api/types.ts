@@ -185,6 +185,8 @@ export interface FabricRollCreate {
   is_sample_available?: boolean;
   sample_price?: number;
   image_url?: string;
+  /** Up to 6 photo URLs (uploaded ones included); the first is the cover. */
+  image_urls?: string[];
   target_buyer_id?: string | null;
   buyer_spec_notes?: string;
   factory_id?: string;
@@ -243,6 +245,44 @@ export interface CreditSummary {
   credit_terms_days: number;
   credit_status: "INELIGIBLE" | "ELIGIBLE" | "ACTIVE" | "BLOCKED";
   can_use_credit: boolean;
+}
+
+export type SwatchSize = "A4" | "HALF_YARD" | "ONE_YARD";
+export type SampleStatus = "REQUESTED" | "ACCEPTED" | "SHIPPED" | "DELIVERED" | "DECLINED" | "CANCELLED";
+
+export interface SampleRequest {
+  id: string;
+  buyer_name: string;
+  buyer_phone: string;
+  factory_id: string;
+  factory_name: string;
+  roll_id: string;
+  roll_code: string;
+  roll_title: string;
+  roll_color_name: string;
+  roll_color_hex: string;
+  swatch_size: SwatchSize;
+  notes: string;
+  delivery_address: string;
+  sample_price: string;
+  status: SampleStatus;
+  factory_note: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SampleRequestInput {
+  fabric_roll: string;
+  swatch_size: SwatchSize;
+  notes?: string;
+  delivery_address?: string;
+}
+
+export interface UploadedImage {
+  id: string;
+  url: string;
+  width: number;
+  height: number;
 }
 
 export type SourcingStatus = "OPEN" | "FULFILLED" | "CLOSED";

@@ -198,7 +198,10 @@ class FabricRollListView(APIView):
             # A custom profile without a target buyer would be invisible to everyone.
             validated_data["is_custom_profile"] = False
 
+        image_urls = [u.strip() for u in validated_data.pop("image_urls", []) if u.strip()]
         image_url = (validated_data.pop("image_url", None) or "").strip()
+        if image_url and image_url not in image_urls:
+            image_urls.append(image_url)
         if validated_data.get("available_yards") is None:
             validated_data["available_yards"] = validated_data["total_yards"]
 
@@ -212,13 +215,18 @@ class FabricRollListView(APIView):
             **validated_data,
         )
 
-        if not image_url:
+        if not image_urls:
             category_slug = ""
             if roll.fabric_type and roll.fabric_type.category:
                 category_slug = roll.fabric_type.category.slug
-            image_url = FALLBACK_IMAGE_BY_CATEGORY.get(category_slug, DEFAULT_FALLBACK_IMAGE)
+            image_urls = [FALLBACK_IMAGE_BY_CATEGORY.get(category_slug, DEFAULT_FALLBACK_IMAGE)]
 
-        FabricRollImage.objects.create(fabric_roll=roll, image_url=image_url, is_primary=True)
+        FabricRollImage.objects.bulk_create(
+            [
+                FabricRollImage(fabric_roll=roll, image_url=url, is_primary=i == 0, sort_order=i)
+                for i, url in enumerate(image_urls[:6])
+            ]
+        )
 
         success_message = (
             f"Custom fabric profile built successfully for {target_buyer.name}."

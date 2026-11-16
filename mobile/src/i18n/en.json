@@ -166,7 +166,20 @@
     "buyNow": "Buy now",
     "buyNowTitle": "Buy {{yards}} yd now",
     "addedToCart": "{{yards}} yd added to your cart.",
-    "viewCart": "View cart"
+    "viewCart": "View cart",
+    "requestSample": "Request a sample",
+    "sampleTitle": "Request a sample",
+    "sampleIntro": "The mill posts you a piece of this roll so you can check the colour, feel and weight before you order.",
+    "samplePrice": "Mill's sample price: {{price}}",
+    "swatchSize": "Sample size",
+    "sampleNotes": "Notes for the mill (optional)",
+    "sampleNotesPlaceholder": "e.g. Need it by Thursday",
+    "sampleAddress": "Delivery address (optional)",
+    "sampleAddressHint": "Leave empty to use your company address.",
+    "sendSampleRequest": "Send sample request",
+    "sampleSent": "Sample requested. The mill will confirm it.",
+    "sampleOpen": "Sample {{status}}",
+    "viewSamples": "View"
   },
   "breakdown": {
     "yards": "Yards",
@@ -303,7 +316,10 @@
     "commission": "Platform fee (6%)",
     "payoutsNote": "Paid to your bank account after the hub cuts and hands over each order. Excludes cancelled and refunded orders.",
     "allOrders": "All orders",
-    "myStorefront": "My storefront"
+    "myStorefront": "My storefront",
+    "samplesTeaser_one": "{{count}} sample request waiting",
+    "samplesTeaser_other": "{{count}} sample requests waiting",
+    "samplesTeaserBody": "Accept it and post a swatch to the buyer."
   },
   "stock": {
     "ALL": "All",
@@ -346,7 +362,19 @@
     "listingType": "Listing type",
     "customFor": "Custom for {{buyer}}",
     "publish": "Publish listing",
-    "successTitle": "Listed"
+    "successTitle": "Listed",
+    "photos": "Photos",
+    "photosHint": "Add up to 6 photos. The first one is the cover in the catalog.",
+    "takePhoto": "Take photo",
+    "pickPhotos": "Choose from gallery",
+    "uploading": "Uploading…",
+    "removePhoto": "Remove photo {{n}}",
+    "cover": "Cover",
+    "uploadFailed": "Photo upload failed",
+    "photoPermission": "Allow photo and camera access in your phone's Settings to add pictures.",
+    "orLink": "Or paste a photo link",
+    "photoLimit": "You can add up to 6 photos.",
+    "photoCount": "{{count}} photo(s)"
   },
   "hub": {
     "lanes": {
@@ -396,7 +424,9 @@
     "linkRequests": "My sourcing requests",
     "linkCredit": "Credit line",
     "linkBuyerRequests": "Buyer requests",
-    "linkAllRequests": "Sourcing requests"
+    "linkAllRequests": "Sourcing requests",
+    "linkSamples": "My sample requests",
+    "linkSampleRequests": "Sample requests"
   },
   "requests": {
     "title": "Sourcing requests",
@@ -456,5 +486,44 @@
     "limitReached": "Limit reached",
     "howTitle": "How it works",
     "howBody": "Choose “B2B credit” at checkout. FabriLink pays the mill, and you settle within your terms by bKash, Nagad or bank transfer. Paid-off and cancelled orders free up your limit."
+  },
+  "samples": {
+    "title": "Sample requests",
+    "all": "All",
+    "size": {
+      "A4": "A4 swatch",
+      "HALF_YARD": "Half yard",
+      "ONE_YARD": "One yard"
+    },
+    "status": {
+      "REQUESTED": "Requested",
+      "ACCEPTED": "Accepted",
+      "SHIPPED": "Shipped",
+      "DELIVERED": "Delivered",
+      "DECLINED": "Declined",
+      "CANCELLED": "Cancelled"
+    },
+    "emptyBuyerTitle": "No sample requests yet",
+    "emptyBuyerBody": "Open any fabric roll and tap “Request a sample”.",
+    "emptyFactoryTitle": "No sample requests",
+    "emptyFactoryBody": "When a buyer asks for a sample of your fabric, it shows up here.",
+    "deliverTo": "Deliver to",
+    "buyerNotes": "Buyer notes",
+    "millNote": "Mill note",
+    "accept": "Accept",
+    "decline": "Decline",
+    "markShipped": "Mark as shipped",
+    "markReceived": "I received it",
+    "markDelivered": "Mark as delivered",
+    "cancel": "Cancel request",
+    "shipNoteTitle": "Courier and tracking number (optional)",
+    "declineNoteTitle": "Reason (optional)",
+    "confirm": "Confirm",
+    "callBuyer": "Call buyer",
+    "requestedOn": "Requested {{date}}",
+    "browse": "Browse fabric",
+    "buyerLabel": "Buyer",
+    "millLabel": "Mill",
+    "priceLabel": "Mill's sample price"
   }
 }

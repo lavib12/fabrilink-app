@@ -53,6 +53,8 @@ describe("translation coverage", () => {
       roles: ["BUYER", "FACTORY", "HUB_STAFF", "ADMIN"],
       payment: ["BKASH", "NAGAD", "SSLCOMMERZ", "COD", "B2B_CREDIT"],
       "requests.status": ["OPEN", "FULFILLED", "CLOSED"],
+      "samples.status": ["REQUESTED", "ACCEPTED", "SHIPPED", "DELIVERED", "DECLINED", "CANCELLED"],
+      "samples.size": ["A4", "HALF_YARD", "ONE_YARD"],
       "breakdown": ["non_positive", "below_min_cut", "exceeds_available", "bad_remnant"],
       "kyc.explain": ["PENDING", "REJECTED", "SUSPENDED", "APPROVED"],
     };

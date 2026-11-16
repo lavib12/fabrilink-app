@@ -4,11 +4,14 @@ import { catalogApi } from "@/api/endpoints/catalog";
 import { companiesApi, type KycUpdate, type VerifyInput } from "@/api/endpoints/companies";
 import { ordersApi, type CheckoutInput } from "@/api/endpoints/orders";
 import { matchingApi } from "@/api/endpoints/matching";
+import { samplesApi } from "@/api/endpoints/samples";
 import type {
   Cart,
   FabricRollCreate,
   OrderStatus,
   RollFilters,
+  SampleRequestInput,
+  SampleStatus,
   SourcingRequestInput,
   SourcingStatus,
   Verification,
@@ -122,6 +125,33 @@ export function useCloseSourcingRequest() {
       qc.setQueryData(queryKeys.sourcingRequest(req.id), req);
       void qc.invalidateQueries({ queryKey: ["sourcing-requests"] });
     },
+  });
+}
+
+// ---------- Sample requests ----------
+
+export const useSampleRequests = (params: { status?: SampleStatus; roll?: string } = {}, enabled = true) =>
+  useQuery({
+    queryKey: ["samples", params.status ?? "ALL", params.roll ?? ""],
+    queryFn: () => samplesApi.list(params),
+    staleTime: 30_000,
+    enabled,
+  });
+
+export function useCreateSampleRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: SampleRequestInput) => samplesApi.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["samples"] }),
+  });
+}
+
+export function useSetSampleStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status, note }: { id: string; status: SampleStatus; note?: string }) =>
+      samplesApi.setStatus(id, status, note),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["samples"] }),
   });
 }
 

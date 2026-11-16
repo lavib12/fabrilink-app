@@ -166,7 +166,20 @@
     "buyNow": "এখনই কিনুন",
     "buyNowTitle": "এখনই {{yards}} গজ কিনুন",
     "addedToCart": "{{yards}} গজ কার্টে যোগ হয়েছে।",
-    "viewCart": "কার্ট দেখুন"
+    "viewCart": "কার্ট দেখুন",
+    "requestSample": "স্যাম্পল চান",
+    "sampleTitle": "স্যাম্পলের অনুরোধ",
+    "sampleIntro": "অর্ডার করার আগে রং, হাতের অনুভূতি আর ওজন দেখে নিতে মিল আপনাকে এই রোলের একটি টুকরো পাঠাবে।",
+    "samplePrice": "মিলের স্যাম্পল মূল্য: {{price}}",
+    "swatchSize": "স্যাম্পলের মাপ",
+    "sampleNotes": "মিলের জন্য নোট (ঐচ্ছিক)",
+    "sampleNotesPlaceholder": "যেমন: বৃহস্পতিবারের মধ্যে দরকার",
+    "sampleAddress": "ডেলিভারির ঠিকানা (ঐচ্ছিক)",
+    "sampleAddressHint": "খালি রাখলে আপনার কোম্পানির ঠিকানা ব্যবহার হবে।",
+    "sendSampleRequest": "স্যাম্পলের অনুরোধ পাঠান",
+    "sampleSent": "স্যাম্পলের অনুরোধ পাঠানো হয়েছে। মিল নিশ্চিত করবে।",
+    "sampleOpen": "স্যাম্পল: {{status}}",
+    "viewSamples": "দেখুন"
   },
   "breakdown": {
     "yards": "গজ",
@@ -303,7 +316,10 @@
     "commission": "প্ল্যাটফর্ম ফি (৬%)",
     "payoutsNote": "হাব প্রতিটি অর্ডার কেটে হস্তান্তরের পর আপনার ব্যাংক অ্যাকাউন্টে দেওয়া হয়। বাতিল ও ফেরত অর্ডার বাদে।",
     "allOrders": "সব অর্ডার",
-    "myStorefront": "আমার স্টোর"
+    "myStorefront": "আমার স্টোর",
+    "samplesTeaser_one": "{{count}}টি স্যাম্পলের অনুরোধ অপেক্ষায়",
+    "samplesTeaser_other": "{{count}}টি স্যাম্পলের অনুরোধ অপেক্ষায়",
+    "samplesTeaserBody": "গ্রহণ করে বায়ারকে একটি টুকরো পাঠান।"
   },
   "stock": {
     "ALL": "সব",
@@ -346,7 +362,19 @@
     "listingType": "তালিকার ধরন",
     "customFor": "{{buyer}}-এর জন্য কাস্টম",
     "publish": "তালিকা প্রকাশ করুন",
-    "successTitle": "তালিকাভুক্ত হয়েছে"
+    "successTitle": "তালিকাভুক্ত হয়েছে",
+    "photos": "ছবি",
+    "photosHint": "সর্বোচ্চ ৬টি ছবি দিন। প্রথম ছবিটি ক্যাটালগে কভার হিসেবে দেখাবে।",
+    "takePhoto": "ছবি তুলুন",
+    "pickPhotos": "গ্যালারি থেকে নিন",
+    "uploading": "আপলোড হচ্ছে…",
+    "removePhoto": "{{n}} নম্বর ছবি সরান",
+    "cover": "কভার",
+    "uploadFailed": "ছবি আপলোড হয়নি",
+    "photoPermission": "ছবি যোগ করতে ফোনের Settings-এ ছবি ও ক্যামেরার অনুমতি দিন।",
+    "orLink": "অথবা ছবির লিংক দিন",
+    "photoLimit": "সর্বোচ্চ ৬টি ছবি দেওয়া যাবে।",
+    "photoCount": "{{count}}টি ছবি"
   },
   "hub": {
     "lanes": {
@@ -396,7 +424,9 @@
     "linkRequests": "আমার সোর্সিং অনুরোধ",
     "linkCredit": "ক্রেডিট লাইন",
     "linkBuyerRequests": "ক্রেতার অনুরোধ",
-    "linkAllRequests": "সোর্সিং অনুরোধ"
+    "linkAllRequests": "সোর্সিং অনুরোধ",
+    "linkSamples": "আমার স্যাম্পলের অনুরোধ",
+    "linkSampleRequests": "স্যাম্পলের অনুরোধ"
   },
   "requests": {
     "title": "সোর্সিং অনুরোধ",
@@ -456,5 +486,44 @@
     "limitReached": "সীমা পূর্ণ",
     "howTitle": "কীভাবে কাজ করে",
     "howBody": "চেকআউটে “বি২বি ক্রেডিট” বেছে নিন। FabriLink মিলকে পরিশোধ করে, আর আপনি মেয়াদের মধ্যে বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে শোধ করেন। পরিশোধিত ও বাতিল অর্ডার আপনার সীমা খালি করে।"
+  },
+  "samples": {
+    "title": "স্যাম্পলের অনুরোধ",
+    "all": "সব",
+    "size": {
+      "A4": "A4 মাপের টুকরো",
+      "HALF_YARD": "আধা গজ",
+      "ONE_YARD": "এক গজ"
+    },
+    "status": {
+      "REQUESTED": "অনুরোধ করা হয়েছে",
+      "ACCEPTED": "গ্রহণ করা হয়েছে",
+      "SHIPPED": "পাঠানো হয়েছে",
+      "DELIVERED": "পৌঁছেছে",
+      "DECLINED": "বাতিল করেছে মিল",
+      "CANCELLED": "বাতিল"
+    },
+    "emptyBuyerTitle": "এখনো কোনো স্যাম্পলের অনুরোধ নেই",
+    "emptyBuyerBody": "যেকোনো ফ্যাব্রিক রোল খুলে “স্যাম্পল চান” চাপুন।",
+    "emptyFactoryTitle": "কোনো স্যাম্পলের অনুরোধ নেই",
+    "emptyFactoryBody": "কোনো বায়ার আপনার ফ্যাব্রিকের স্যাম্পল চাইলে এখানে দেখাবে।",
+    "deliverTo": "যেখানে পাঠাতে হবে",
+    "buyerNotes": "বায়ারের নোট",
+    "millNote": "মিলের নোট",
+    "accept": "গ্রহণ করুন",
+    "decline": "বাতিল করুন",
+    "markShipped": "পাঠানো হয়েছে",
+    "markReceived": "আমি পেয়েছি",
+    "markDelivered": "পৌঁছেছে",
+    "cancel": "অনুরোধ বাতিল করুন",
+    "shipNoteTitle": "কুরিয়ার ও ট্র্যাকিং নম্বর (ঐচ্ছিক)",
+    "declineNoteTitle": "কারণ (ঐচ্ছিক)",
+    "confirm": "নিশ্চিত করুন",
+    "callBuyer": "বায়ারকে কল করুন",
+    "requestedOn": "অনুরোধ {{date}}",
+    "browse": "ফ্যাব্রিক দেখুন",
+    "buyerLabel": "বায়ার",
+    "millLabel": "মিল",
+    "priceLabel": "মিলের স্যাম্পল মূল্য"
   }
 }
