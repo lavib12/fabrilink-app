@@ -220,7 +220,8 @@
     "B2B_CREDIT_hint": "Use your approved credit line",
     "creditLeft": "{{amount}} available on your credit line",
     "BANK_TRANSFER": "Bank transfer",
-    "BANK_TRANSFER_hint": "BEFTN / RTGS from Bangladesh, or SWIFT from abroad"
+    "BANK_TRANSFER_hint": "BEFTN / RTGS from Bangladesh, or SWIFT from abroad",
+    "walletManual_hint": "Send money to our number, then enter your number and the TrxID"
   },
   "checkout": {
     "paymentMethod": "Payment method",

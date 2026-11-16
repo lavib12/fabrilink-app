@@ -164,6 +164,12 @@ export function useSetSampleStatus() {
 export const usePaymentAccounts = (enabled = true) =>
   useQuery({ queryKey: ["payment-accounts"], queryFn: paymentsApi.accounts, staleTime: 5 * 60_000, enabled });
 
+/** Whether bKash/Nagad/card open the live SSLCommerz page (otherwise Send Money + TrxID). */
+export function useGatewayLive(): boolean {
+  const signedIn = useAuth((s) => s.status === "authenticated");
+  return usePaymentAccounts(signedIn).data?.gateway_live ?? false;
+}
+
 export function useUpdatePaymentAccounts() {
   const qc = useQueryClient();
   return useMutation({

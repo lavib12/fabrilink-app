@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import type { PaymentMethod } from "@/api/types";
-import { useCredit } from "@/hooks/queries";
+import { useCredit, useGatewayLive } from "@/hooks/queries";
 import { formatBDT, toNumber } from "@/lib/format";
 import { useAuth } from "@/store/auth";
 import { MIN_TOUCH, radius, spacing, useTheme } from "@/theme";
@@ -13,12 +13,16 @@ import { Text } from "./ui";
 // bKash, Nagad and cards open the SSLCommerz payment page; bank transfer uses a proof form.
 const METHODS: PaymentMethod[] = ["BKASH", "NAGAD", "SSLCOMMERZ", "BANK_TRANSFER", "COD", "B2B_CREDIT"];
 
-/** B2B credit is only offered while the credit line has room left (the server re-checks). */
+/**
+ * B2B credit is only offered while the credit line has room left (the server re-checks).
+ * Card payments need the live SSLCommerz gateway, so they're hidden until it's set up.
+ */
 export function usePaymentMethods(): PaymentMethod[] {
   const credit = useCredit();
+  const gatewayLive = useGatewayLive();
   const creditLimit = useAuth((s) => toNumber(s.user?.company?.credit_limit));
   const canUseCredit = credit.data ? credit.data.can_use_credit : creditLimit > 0;
-  return METHODS.filter((m) => m !== "B2B_CREDIT" || canUseCredit);
+  return METHODS.filter((m) => (m !== "B2B_CREDIT" || canUseCredit) && (m !== "SSLCOMMERZ" || gatewayLive));
 }
 
 /** Remaining credit shown under the B2B credit option. */
@@ -38,6 +42,9 @@ export function PaymentMethodPicker({
   const { colors } = useTheme();
   const methods = usePaymentMethods();
   const creditLeft = useCreditHint();
+  const gatewayLive = useGatewayLive();
+  const hint = (m: PaymentMethod) =>
+    (m === "BKASH" || m === "NAGAD") && !gatewayLive ? t("payment.walletManual_hint") : t(`payment.${m}_hint`);
   return (
     <View style={{ gap: spacing.sm }} accessibilityRole="radiogroup">
       {methods.map((m) => {
@@ -59,7 +66,7 @@ export function PaymentMethodPicker({
               <Text variant="caption" muted>
                 {m === "B2B_CREDIT" && creditLeft
                   ? t("payment.creditLeft", { amount: creditLeft })
-                  : t(`payment.${m}_hint`)}
+                  : hint(m)}
               </Text>
             </View>
           </Pressable>

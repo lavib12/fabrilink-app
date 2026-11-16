@@ -220,7 +220,8 @@
     "B2B_CREDIT_hint": "আপনার অনুমোদিত ক্রেডিট লাইন ব্যবহার করুন",
     "creditLeft": "আপনার ক্রেডিট লাইনে {{amount}} আছে",
     "BANK_TRANSFER": "ব্যাংক ট্রান্সফার",
-    "BANK_TRANSFER_hint": "দেশ থেকে BEFTN / RTGS, বিদেশ থেকে SWIFT"
+    "BANK_TRANSFER_hint": "দেশ থেকে BEFTN / RTGS, বিদেশ থেকে SWIFT",
+    "walletManual_hint": "আমাদের নম্বরে টাকা পাঠিয়ে আপনার নম্বর আর TrxID দিন"
   },
   "checkout": {
     "paymentMethod": "পেমেন্ট পদ্ধতি",

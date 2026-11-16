@@ -1,6 +1,7 @@
 import re
 from decimal import Decimal
 
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import serializers
 
@@ -10,11 +11,17 @@ from .models import PaymentSettings, PaymentSubmission
 class PaymentSettingsSerializer(serializers.ModelSerializer):
     bkash_account_type_label = serializers.CharField(source="get_bkash_account_type_display", read_only=True)
     nagad_account_type_label = serializers.CharField(source="get_nagad_account_type_display", read_only=True)
+    # True once a live SSLCommerz store is configured. Until then the app takes bKash/Nagad
+    # by Send Money + TrxID and hides card payments.
+    gateway_live = serializers.SerializerMethodField()
 
     class Meta:
         model = PaymentSettings
         exclude = ["id"]
         read_only_fields = ["updated_at"]
+
+    def get_gateway_live(self, obj) -> bool:
+        return not settings.SSLCOMMERZ_SANDBOX
 
     def _wallet(self, value):
         digits = re.sub(r"\D", "", value or "")

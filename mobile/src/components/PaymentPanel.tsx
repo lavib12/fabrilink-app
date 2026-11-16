@@ -429,11 +429,11 @@ export function PaymentPanel({ order, isBuyer, isAdmin = false }: { order: Order
   const method = order.payment_method as ManualPaymentMethod;
   const status = order.payment_status;
   const needsProof = status === "AWAITING" || status === "REJECTED";
-  const accounts = usePaymentAccounts(isBuyer && needsProof && method !== "SSLCOMMERZ");
+  const accounts = usePaymentAccounts(isBuyer && needsProof);
   const payments = useOrderPayments(order.id, status !== "AWAITING");
   const latest = payments.data?.[0];
   const [justSent, setJustSent] = useState(false);
-  const gateway = isGatewayMethod(method);
+  const gateway = isGatewayMethod(method, accounts.data?.gateway_live ?? false);
   const [showManual, setShowManual] = useState(false);
 
   if (status === "NOT_REQUIRED") return null;

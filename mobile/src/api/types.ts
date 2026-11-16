@@ -339,6 +339,8 @@ export interface PaymentAccounts {
   bank_currencies: string;
   intermediary_bank: string;
   instructions: string;
+  /** A live SSLCommerz store is set up; until then bKash/Nagad use Send Money + TrxID. */
+  gateway_live?: boolean;
 }
 
 export interface PaymentSubmission {

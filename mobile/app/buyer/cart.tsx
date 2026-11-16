@@ -9,7 +9,7 @@ import { FeeBreakdown } from "@/components/FeeBreakdown";
 import { PaymentMethodPicker } from "@/components/PaymentMethodPicker";
 import { Button, Card, ColorDot, EmptyState, ErrorState, ListSkeleton, Row, Sheet, Text, TextField } from "@/components/ui";
 import { YardPicker } from "@/components/YardPicker";
-import { useAddToCart, useCart, useCheckout, useRemoveCartItem } from "@/hooks/queries";
+import { useAddToCart, useCart, useCheckout, useGatewayLive, useRemoveCartItem } from "@/hooks/queries";
 import { checkBreakdown } from "@/lib/breakdown";
 import { formatBDT, formatNumber, toNumber } from "@/lib/format";
 import { isGatewayMethod, openOnlinePayment } from "@/lib/onlinePayment";
@@ -25,6 +25,7 @@ export default function CartScreen() {
   const cart = useCart();
   const remove = useRemoveCartItem();
   const checkout = useCheckout();
+  const gatewayLive = useGatewayLive();
   const [payment, setPayment] = useState<PaymentMethod>("BKASH");
   const [notes, setNotes] = useState("");
   const [editing, setEditing] = useState<CartItem | null>(null);
@@ -65,7 +66,7 @@ export default function CartScreen() {
         delivery_notes: notes.trim() || undefined,
       });
       router.push({ pathname: "/order/[id]", params: { id: order.id } });
-      if (isGatewayMethod(order.payment_method)) void openOnlinePayment(order.id, t);
+      if (isGatewayMethod(order.payment_method, gatewayLive)) void openOnlinePayment(order.id, t);
     } catch (err) {
       showPurchaseError(err, t);
     }

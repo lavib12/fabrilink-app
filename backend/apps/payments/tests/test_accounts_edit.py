@@ -37,6 +37,15 @@ def test_admin_saves_accounts_and_buyers_see_them(users):
     assert seen["bank_swift_code"] == "TESTBDDH"
 
 
+def test_gateway_live_flag_follows_sandbox_setting(users):
+    _, buyer = users
+    from django.test import override_settings
+
+    assert _client(buyer).get(URL).data["data"]["gateway_live"] is False
+    with override_settings(SSLCOMMERZ_SANDBOX=False):
+        assert _client(buyer).get(URL).data["data"]["gateway_live"] is True
+
+
 def test_only_admin_can_edit_and_bad_values_are_explained(users):
     admin, buyer = users
     assert _client(buyer).patch(URL, {"bkash_number": "01811222333"}, format="json").status_code == 403

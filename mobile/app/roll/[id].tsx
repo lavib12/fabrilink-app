@@ -12,7 +12,7 @@ import { PaymentMethodPicker } from "@/components/PaymentMethodPicker";
 import { FALLBACK_FABRIC_IMAGE } from "@/components/RollCard";
 import { Badge, Button, Card, Chip, ColorDot, ErrorState, KeyValue, LoadingState, PressableCard, Row, Sheet, Text, TextField } from "@/components/ui";
 import { YardPicker } from "@/components/YardPicker";
-import { useAddToCart, useCheckout, useCreateSampleRequest, useRoll, useSampleRequests } from "@/hooks/queries";
+import { useAddToCart, useCheckout, useCreateSampleRequest, useGatewayLive, useRoll, useSampleRequests } from "@/hooks/queries";
 import { getErrorMessage } from "@/api/errors";
 import { checkBreakdown } from "@/lib/breakdown";
 import { formatBDT, formatNumber, toNumber } from "@/lib/format";
@@ -32,6 +32,7 @@ export default function RollDetailScreen() {
   const roll = useRoll(id);
   const addToCart = useAddToCart();
   const checkout = useCheckout();
+  const gatewayLive = useGatewayLive();
 
   const [yards, setYards] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
@@ -97,7 +98,7 @@ export default function RollDetailScreen() {
       setBuyOpen(false);
       router.replace({ pathname: "/order/[id]", params: { id: order.id } });
       // Like Daraz: go straight to the bKash / Nagad / card page.
-      if (isGatewayMethod(order.payment_method)) void openOnlinePayment(order.id, t);
+      if (isGatewayMethod(order.payment_method, gatewayLive)) void openOnlinePayment(order.id, t);
     } catch (err) {
       setBuyOpen(false);
       handlePurchaseError(err);
