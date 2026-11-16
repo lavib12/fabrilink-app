@@ -78,6 +78,12 @@ class PaymentSettings(models.Model):
         return obj
 
 
+class ChargesOption(models.TextChoices):
+    OUR = "OUR", "OUR: sender pays all charges"
+    SHA = "SHA", "SHA: charges shared"
+    BEN = "BEN", "BEN: receiver pays all charges"
+
+
 class SubmissionStatus(models.TextChoices):
     SUBMITTED = "SUBMITTED", "Waiting for review"
     VERIFIED = "VERIFIED", "Verified"
@@ -105,6 +111,22 @@ class PaymentSubmission(UUIDModel, TimeStampedModel):
     sender_swift_code = models.CharField(max_length=11, blank=True)
     transfer_date = models.DateField(null=True, blank=True)
     note = models.TextField(blank=True)
+
+    # International wires: originator details required by the FATF travel rule (R.16)
+    # and the SWIFT charge option the sender chose.
+    sender_address = models.CharField(max_length=255, blank=True)
+    charges_option = models.CharField(
+        max_length=3, choices=ChargesOption.choices, blank=True, help_text="SWIFT field 71A."
+    )
+    payment_purpose = models.CharField(max_length=140, blank=True)
+    receipt = models.ForeignKey(
+        "catalog.UploadedImage",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payment_submissions",
+        help_text="Screenshot or bank slip; private to the buyer and admins.",
+    )
 
     status = models.CharField(
         max_length=20,

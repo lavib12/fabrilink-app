@@ -572,7 +572,19 @@
       "trxId": "Transaction ID (TrxID)",
       "trxHint": "It's in the {{wallet}} SMS, e.g. TrxID 9A7B3C1D2E.",
       "note": "Note (optional)",
-      "submit": "Submit payment details"
+      "submit": "Submit payment details",
+      "senderIbanRequired": "Sender's account number or IBAN",
+      "senderAddress": "Sender's full address",
+      "senderAddressHint": "Required for transfers from abroad: street, city and country, as on the bank account.",
+      "senderAddressShort": "Sender's address",
+      "charges": "Charges (SWIFT 71A)",
+      "chargesHint": {
+        "OUR": "OUR: you pay all bank charges, so the full amount arrives. Recommended.",
+        "SHA": "SHA: charges are shared; fees may be taken from the amount on the way.",
+        "BEN": "BEN: all charges come out of the amount, so less will arrive."
+      },
+      "purpose": "Purpose of payment",
+      "purposeHint": "Use the same purpose you gave your bank, e.g. payment for goods."
     },
     "verifiedTitle": "Payment confirmed",
     "reviewTitle": "Payment under review",
@@ -616,6 +628,15 @@
       "note": "Note (optional)",
       "notePlaceholder": "e.g. Buyer sent TrxID by phone",
       "confirm": "Confirm payment"
+    },
+    "receipt": {
+      "title": "Payment receipt / screenshot",
+      "hintWallet": "Recommended: a screenshot of the {{wallet}} success screen or SMS. Only FabriLink admins see it.",
+      "hintBank": "Recommended: a photo of the deposit slip, transfer confirmation or SWIFT copy (MT103). Only FabriLink admins see it.",
+      "gallery": "From gallery",
+      "attached": "Receipt attached",
+      "failed": "Receipt upload failed",
+      "remove": "Remove receipt"
     }
   },
   "update": {

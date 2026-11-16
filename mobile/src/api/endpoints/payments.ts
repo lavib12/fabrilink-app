@@ -1,7 +1,12 @@
 import { apiClient } from "../client";
 import type { PaymentAccounts, PaymentSubmission, PaymentSubmitInput, SubmissionStatus } from "../types";
+import { type PickedImage, uploadImageFile } from "../upload";
 
 export const paymentsApi = {
+  /** Payment screenshot / bank slip; only this buyer and admins can open it. */
+  uploadReceipt(photo: PickedImage): Promise<{ id: string }> {
+    return uploadImageFile<{ id: string }>("/payments/receipts/", photo);
+  },
   /** FabriLink's bKash / Nagad numbers and bank details. */
   async accounts(): Promise<PaymentAccounts> {
     const res = await apiClient.get("/payments/accounts/");

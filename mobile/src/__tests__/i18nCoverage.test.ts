@@ -54,6 +54,7 @@ describe("translation coverage", () => {
       payment: ["BKASH", "NAGAD", "BANK_TRANSFER", "SSLCOMMERZ", "COD", "B2B_CREDIT"],
       "pay.status": ["AWAITING", "SUBMITTED", "VERIFIED", "REJECTED"],
       "pay.walletSteps": ["PERSONAL", "MERCHANT", "AGENT"],
+      "pay.form.chargesHint": ["OUR", "SHA", "BEN"],
       "requests.status": ["OPEN", "FULFILLED", "CLOSED"],
       "samples.status": ["REQUESTED", "ACCEPTED", "SHIPPED", "DELIVERED", "DECLINED", "CANCELLED"],
       "samples.size": ["A4", "HALF_YARD", "ONE_YARD"],

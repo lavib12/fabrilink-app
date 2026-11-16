@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.urls import reverse
 from rest_framework import serializers
 
 from .models import PaymentSettings, PaymentSubmission
@@ -24,6 +25,14 @@ class PaymentSubmissionSerializer(serializers.ModelSerializer):
     buyer_phone = serializers.CharField(source="buyer.contact_phone", read_only=True)
     method_label = serializers.CharField(source="get_method_display", read_only=True)
     reviewed_by_email = serializers.CharField(source="reviewed_by.email", read_only=True, default=None)
+    receipt_url = serializers.SerializerMethodField()
+
+    def get_receipt_url(self, obj) -> str | None:
+        if not obj.receipt_id:
+            return None
+        path = reverse("payments:receipt_file", args=[obj.receipt_id])
+        request = self.context.get("request")
+        return request.build_absolute_uri(path) if request else path
 
     class Meta:
         model = PaymentSubmission
@@ -46,6 +55,10 @@ class PaymentSubmissionSerializer(serializers.ModelSerializer):
             "sender_swift_code",
             "transfer_date",
             "note",
+            "sender_address",
+            "charges_option",
+            "payment_purpose",
+            "receipt_url",
             "status",
             "review_note",
             "reviewed_by_email",
@@ -68,6 +81,10 @@ class PaymentSubmitSerializer(serializers.Serializer):
     sender_swift_code = serializers.CharField(required=False, allow_blank=True, max_length=15)
     transfer_date = serializers.DateField(required=False, allow_null=True)
     note = serializers.CharField(required=False, allow_blank=True, max_length=1000)
+    sender_address = serializers.CharField(required=False, allow_blank=True, max_length=255)
+    charges_option = serializers.CharField(required=False, allow_blank=True, max_length=3)
+    payment_purpose = serializers.CharField(required=False, allow_blank=True, max_length=140)
+    receipt_id = serializers.UUIDField(required=False, allow_null=True)
 
 
 class PaymentRecordSerializer(serializers.Serializer):

@@ -357,6 +357,11 @@ export interface PaymentSubmission {
   sender_swift_code: string;
   transfer_date: string | null;
   note: string;
+  sender_address: string;
+  charges_option: "" | "OUR" | "SHA" | "BEN";
+  payment_purpose: string;
+  /** Private image URL; needs the user's Authorization header. */
+  receipt_url: string | null;
   status: SubmissionStatus;
   review_note: string;
   reviewed_by_email: string | null;
@@ -375,6 +380,10 @@ export interface PaymentSubmitInput {
   sender_swift_code?: string;
   transfer_date?: string | null;
   note?: string;
+  sender_address?: string;
+  charges_option?: string;
+  payment_purpose?: string;
+  receipt_id?: string | null;
 }
 
 export type OrderStatus =

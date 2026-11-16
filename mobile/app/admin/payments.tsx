@@ -6,6 +6,7 @@ import { Alert, FlatList, Linking, RefreshControl, ScrollView, View } from "reac
 
 import { getErrorMessage } from "@/api/errors";
 import type { PaymentSubmission, SubmissionStatus } from "@/api/types";
+import { SubmissionExtras } from "@/components/PaymentPanel";
 import { Badge, Button, Card, Chip, EmptyState, ErrorState, KeyValue, ListSkeleton, PressableCard, Row, Sheet, Text, TextField, type Tone } from "@/components/ui";
 import { usePaymentQueue, useReviewPayment } from "@/hooks/queries";
 import { formatBDT, formatDate, formatDateTime, toNumber } from "@/lib/format";
@@ -134,6 +135,7 @@ function SubmissionCard({
       {sub.sender_bank_country ? <KeyValue label={t("pay.form.country")} value={sub.sender_bank_country} /> : null}
       {sub.sender_swift_code ? <KeyValue label={t("pay.bank.swift")} value={sub.sender_swift_code} /> : null}
       {sub.transfer_date ? <KeyValue label={t("pay.form.date")} value={formatDate(sub.transfer_date)} /> : null}
+      <SubmissionExtras sub={sub} />
       {sub.note ? <Text>{sub.note}</Text> : null}
       <Text variant="caption" muted>
         {t("pay.sentAt", { date: formatDateTime(sub.created_at) })}

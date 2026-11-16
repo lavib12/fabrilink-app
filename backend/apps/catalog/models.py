@@ -167,6 +167,8 @@ class UploadedImage(UUIDModel, TimeStampedModel):
         Company, on_delete=models.CASCADE, null=True, related_name="uploaded_images"
     )
     content_type = models.CharField(max_length=50, default="image/jpeg")
+    # Private images (payment receipts) are never served by the public image URL.
+    is_private = models.BooleanField(default=False)
     data = models.BinaryField()
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)

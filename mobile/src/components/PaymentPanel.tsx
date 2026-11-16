@@ -1,10 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 
+import { paymentsApi } from "@/api/endpoints/payments";
 import { getErrorMessage, getFieldErrors } from "@/api/errors";
+import { AuthImage } from "@/components/AuthImage";
 import type { ManualPaymentMethod, Order, PaymentAccounts, PaymentSubmission } from "@/api/types";
 import { Badge, Button, Card, Chip, Divider, KeyValue, Row, Sheet, Text, TextField } from "@/components/ui";
 import { useOrderPayments, usePaymentAccounts, useRecordPayment, useSubmitPayment } from "@/hooks/queries";
@@ -115,10 +119,36 @@ function SubmissionSummary({ sub }: { sub: PaymentSubmission }) {
       {sub.sender_bank_country ? <KeyValue label={t("pay.form.country")} value={sub.sender_bank_country} /> : null}
       {sub.sender_swift_code ? <KeyValue label={t("pay.bank.swift")} value={sub.sender_swift_code} /> : null}
       {sub.transfer_date ? <KeyValue label={t("pay.form.date")} value={formatDate(sub.transfer_date)} /> : null}
+      <SubmissionExtras sub={sub} />
       <Text variant="caption" muted>
         {t("pay.sentAt", { date: formatDateTime(sub.created_at) })}
       </Text>
     </View>
+  );
+}
+
+/** International-transfer fields and the receipt image; shared by the buyer and admin views. */
+export function SubmissionExtras({ sub }: { sub: PaymentSubmission }) {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  return (
+    <>
+      {sub.sender_address ? <KeyValue label={t("pay.form.senderAddressShort")} value={sub.sender_address} /> : null}
+      {sub.charges_option ? <KeyValue label={t("pay.form.charges")} value={sub.charges_option} /> : null}
+      {sub.payment_purpose && sub.method === "BANK_TRANSFER" ? <KeyValue label={t("pay.form.purpose")} value={sub.payment_purpose} /> : null}
+      {sub.receipt_url ? (
+        <View style={{ gap: 4, marginTop: spacing.xs }}>
+          <Text variant="caption" muted>
+            {t("pay.receipt.title")}
+          </Text>
+          <AuthImage
+            uri={sub.receipt_url}
+            label={t("pay.receipt.title")}
+            style={{ width: "100%", height: 320, borderRadius: 8, backgroundColor: colors.surfaceMuted }}
+          />
+        </View>
+      ) : null}
+    </>
   );
 }
 
@@ -136,22 +166,60 @@ function PaymentForm({ order, method, onDone }: { order: Order; method: ManualPa
     sender_bank_name: "",
     sender_bank_country: "Bangladesh",
     sender_swift_code: "",
+    sender_address: "",
+    charges_option: "OUR",
+    payment_purpose: `Payment for fabric, order ${order.order_number}`,
     transfer_date: todayIso(),
     note: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const set = (k: keyof typeof f) => (v: string) => setF((s) => ({ ...s, [k]: v }));
-  const abroad = isBank && f.sender_bank_country.trim().toLowerCase() !== "bangladesh";
+  const [receipt, setReceipt] = useState<{ uri: string; id?: string; failed?: boolean } | null>(null);
+  const set = (k: keyof typeof f) => (v: string) => {
+    setF((s) => ({ ...s, [k]: v }));
+    setErrors((e) => (e[k] ? { ...e, [k]: "" } : e));
+  };
+  const abroad = isBank && !["", "bangladesh", "bd", "বাংলাদেশ"].includes(f.sender_bank_country.trim().toLowerCase());
+  const receiptUploading = Boolean(receipt && !receipt.id && !receipt.failed);
+
+  const pickReceipt = async (fromCamera: boolean) => {
+    const permission = fromCamera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(t("pay.receipt.title"), t("listing.photoPermission"));
+      return;
+    }
+    const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], quality: 0.8 };
+    const result = fromCamera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
+    const asset = result.canceled ? undefined : result.assets[0];
+    if (!asset) return;
+    setReceipt({ uri: asset.uri });
+    try {
+      const { id } = await paymentsApi.uploadReceipt(asset);
+      setReceipt({ uri: asset.uri, id });
+    } catch (err) {
+      setReceipt({ uri: asset.uri, failed: true });
+      Alert.alert(t("pay.receipt.failed"), getErrorMessage(err));
+    }
+  };
 
   const send = async () => {
+    if (receiptUploading) return;
     setErrors({});
     setFormError(null);
+    const receipt_id = receipt?.id ?? null;
     try {
       await submit.mutateAsync(
         isBank
-          ? { ...f, transfer_date: f.transfer_date || null }
-          : { amount: f.amount, transaction_id: f.transaction_id, sender_account: f.sender_account, note: f.note }
+          ? {
+              ...f,
+              charges_option: abroad ? f.charges_option : "",
+              sender_swift_code: abroad ? f.sender_swift_code : "",
+              transfer_date: f.transfer_date || null,
+              receipt_id,
+            }
+          : { amount: f.amount, transaction_id: f.transaction_id, sender_account: f.sender_account, note: f.note, receipt_id }
       );
       onDone();
     } catch (err) {
@@ -169,21 +237,47 @@ function PaymentForm({ order, method, onDone }: { order: Order; method: ManualPa
           <TextField label={t("pay.form.senderBank")} value={f.sender_bank_name} onChangeText={set("sender_bank_name")} error={errors.sender_bank_name} />
           <TextField label={t("pay.form.country")} value={f.sender_bank_country} onChangeText={set("sender_bank_country")} error={errors.sender_bank_country} />
           <TextField
-            label={t("pay.form.senderIban")}
+            label={abroad ? t("pay.form.senderIbanRequired") : t("pay.form.senderIban")}
             value={f.sender_account}
             onChangeText={set("sender_account")}
             autoCapitalize="characters"
             error={errors.sender_account}
           />
           {abroad ? (
-            <TextField
-              label={t("pay.form.senderSwift")}
-              value={f.sender_swift_code}
-              onChangeText={set("sender_swift_code")}
-              autoCapitalize="characters"
-              maxLength={11}
-              error={errors.sender_swift_code}
-            />
+            <>
+              <TextField
+                label={t("pay.form.senderAddress")}
+                value={f.sender_address}
+                onChangeText={set("sender_address")}
+                hint={t("pay.form.senderAddressHint")}
+                multiline
+                error={errors.sender_address}
+              />
+              <TextField
+                label={t("pay.form.senderSwift")}
+                value={f.sender_swift_code}
+                onChangeText={set("sender_swift_code")}
+                autoCapitalize="characters"
+                maxLength={11}
+                error={errors.sender_swift_code}
+              />
+              <View style={{ gap: spacing.sm }}>
+                <Text variant="label">{t("pay.form.charges")}</Text>
+                <Row style={{ flexWrap: "wrap" }}>
+                  {(["OUR", "SHA", "BEN"] as const).map((c) => (
+                    <Chip key={c} label={c} selected={f.charges_option === c} onPress={() => set("charges_option")(c)} />
+                  ))}
+                </Row>
+                <Text variant="caption" muted>
+                  {t(`pay.form.chargesHint.${f.charges_option}`)}
+                </Text>
+                {errors.charges_option ? (
+                  <Text variant="caption" color={colors.danger}>
+                    {errors.charges_option}
+                  </Text>
+                ) : null}
+              </View>
+            </>
           ) : null}
           <View style={{ gap: spacing.sm }}>
             <Text variant="label">{t("pay.form.currency")}</Text>
@@ -210,6 +304,13 @@ function PaymentForm({ order, method, onDone }: { order: Order; method: ManualPa
             hint={t("pay.form.bankRefHint")}
             error={errors.transaction_id}
           />
+          <TextField
+            label={t("pay.form.purpose")}
+            value={f.payment_purpose}
+            onChangeText={set("payment_purpose")}
+            maxLength={140}
+            hint={t("pay.form.purposeHint")}
+          />
         </>
       ) : (
         <>
@@ -233,13 +334,47 @@ function PaymentForm({ order, method, onDone }: { order: Order; method: ManualPa
           <TextField label={t("pay.form.amount", { currency: "BDT" })} value={f.amount} onChangeText={set("amount")} keyboardType="decimal-pad" error={errors.amount} />
         </>
       )}
+      <View style={{ gap: spacing.sm }}>
+        <Text variant="label">{t("pay.receipt.title")}</Text>
+        <Text variant="caption" muted>
+          {isBank ? t("pay.receipt.hintBank") : t("pay.receipt.hintWallet", { wallet: t(`payment.${method}`) })}
+        </Text>
+        {receipt ? (
+          <View style={{ gap: spacing.xs }}>
+            <Image source={{ uri: receipt.uri }} style={{ width: "100%", height: 220, borderRadius: 8, backgroundColor: colors.surfaceMuted }} contentFit="contain" />
+            <Text variant="caption" color={receipt.failed ? colors.danger : receipt.id ? colors.success : colors.textMuted}>
+              {receipt.failed ? t("pay.receipt.failed") : receipt.id ? t("pay.receipt.attached") : t("listing.uploading")}
+            </Text>
+            <Button title={t("pay.receipt.remove")} variant="ghost" small onPress={() => setReceipt(null)} />
+          </View>
+        ) : (
+          <Row style={{ gap: spacing.sm }}>
+            <Button
+              title={t("listing.takePhoto")}
+              variant="secondary"
+              small
+              icon={<Ionicons name="camera-outline" size={16} color={colors.text} />}
+              onPress={() => void pickReceipt(true)}
+              style={{ flex: 1 }}
+            />
+            <Button
+              title={t("pay.receipt.gallery")}
+              variant="secondary"
+              small
+              icon={<Ionicons name="images-outline" size={16} color={colors.text} />}
+              onPress={() => void pickReceipt(false)}
+              style={{ flex: 1 }}
+            />
+          </Row>
+        )}
+      </View>
       <TextField label={t("pay.form.note")} value={f.note} onChangeText={set("note")} multiline />
       {formError && Object.keys(errors).length === 0 ? (
         <Text color={colors.danger} accessibilityLiveRegion="assertive">
           {formError}
         </Text>
       ) : null}
-      <Button title={t("pay.form.submit")} onPress={() => void send()} loading={submit.isPending} />
+      <Button title={t("pay.form.submit")} onPress={() => void send()} loading={submit.isPending} disabled={receiptUploading} />
     </View>
   );
 }

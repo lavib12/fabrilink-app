@@ -135,6 +135,8 @@ def test_international_bank_transfer(world):
         "sender_name": "Rahim Textiles LLC", "sender_bank_name": "Emirates NBD",
         "sender_bank_country": "United Arab Emirates", "sender_swift_code": "ebil aead",
         "sender_account": "AE07 0331 2345 6789 0123 456",
+        "sender_address": "Office 1204, Al Fahidi St, Dubai, UAE",
+        "charges_option": "our",
         "transfer_date": str(timezone.localdate()),
     }
     res = _client(world["buyer_user"]).post(_url(order), body, format="json")
@@ -143,6 +145,25 @@ def test_international_bank_transfer(world):
     assert data["currency"] == "USD"
     assert data["sender_swift_code"] == "EBILAEAD"
     assert data["sender_account"] == "AE070331234567890123456"
+    assert data["charges_option"] == "OUR"
+    assert data["payment_purpose"] == f"Payment for fabric, order {order.order_number}"
+
+
+def test_transfer_from_abroad_needs_originator_account_and_address(world):
+    """FATF travel rule: name, account number and address of the sender."""
+    order = world["order"]("BANK_TRANSFER")
+    body = {
+        "amount": "100", "currency": "USD", "transaction_id": "MT103REF1",
+        "sender_name": "Ali Trading", "sender_bank_name": "HSBC", "sender_bank_country": "United Kingdom",
+        "transfer_date": str(timezone.localdate()), "charges_option": "XYZ",
+    }
+    res = _client(world["buyer_user"]).post(_url(order), body, format="json")
+    assert res.status_code == 400
+    assert {"sender_account", "sender_address", "charges_option"} <= set(res.data["error"]["details"])
+
+    # A domestic BEFTN transfer doesn't need them.
+    local = {**body, "sender_bank_country": "Bangladesh", "currency": "BDT", "charges_option": ""}
+    assert _client(world["buyer_user"]).post(_url(order), local, format="json").status_code == 201
 
 
 def test_bank_transfer_needs_sender_bank_and_a_past_date(world):

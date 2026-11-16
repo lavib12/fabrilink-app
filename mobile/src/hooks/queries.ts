@@ -198,8 +198,12 @@ export function useRecordPayment(orderId: string) {
   });
 }
 
-export const usePaymentQueue = (status?: SubmissionStatus) =>
-  useQuery({ queryKey: ["payment-queue", status ?? "ALL"], queryFn: () => paymentsApi.queue(status) });
+export const usePaymentQueue = (status?: SubmissionStatus, opts: { refetchInterval?: number } = {}) =>
+  useQuery({
+    queryKey: ["payment-queue", status ?? "ALL"],
+    queryFn: () => paymentsApi.queue(status),
+    refetchInterval: opts.refetchInterval,
+  });
 
 export function useReviewPayment() {
   const qc = useQueryClient();

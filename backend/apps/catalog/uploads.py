@@ -88,7 +88,11 @@ class ImageFileView(APIView):
 
     @extend_schema(exclude=True)
     def get(self, request, image_id):
-        image = UploadedImage.objects.filter(id=image_id).only("data", "content_type").first()
+        image = (
+            UploadedImage.objects.filter(id=image_id, is_private=False)
+            .only("data", "content_type")
+            .first()
+        )
         if image is None:
             raise NotFoundError("Image not found.")
         response = HttpResponse(bytes(image.data), content_type=image.content_type)

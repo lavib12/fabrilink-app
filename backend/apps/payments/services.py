@@ -4,6 +4,7 @@ from datetime import date
 from django.db import transaction
 from django.utils import timezone
 
+from apps.catalog.models import UploadedImage
 from apps.orders.models import Order, OrderStatusChoices, OrderTrackingEvent
 from common.exceptions import (
     ConflictError,
@@ -26,6 +27,10 @@ SWIFT = re.compile(r"^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$")
 CURRENCIES = {"BDT", "USD", "EUR", "GBP", "AED", "SAR", "QAR", "KWD", "MYR", "SGD", "INR", "CNY", "JPY", "AUD", "CAD"}
 
 
+def is_international(country: str) -> bool:
+    return (country or "").strip().lower() not in ("", "bangladesh", "bd", "বাংলাদেশ")
+
+
 def normalise_bd_mobile(raw: str) -> str:
     """Accepts 01XXXXXXXXX, +8801XXXXXXXXX or 8801XXXXXXXXX with spaces or dashes."""
     digits = re.sub(r"\D", "", raw or "")
@@ -41,6 +46,7 @@ def _clean(data: dict, method: str) -> dict:
         "amount": data.get("amount"),
         "note": (data.get("note") or "").strip(),
         "transfer_date": data.get("transfer_date"),
+        "payment_purpose": (data.get("payment_purpose") or "").strip()[:140],
     }
     trx = (data.get("transaction_id") or "").strip()
 
@@ -69,12 +75,27 @@ def _clean(data: dict, method: str) -> dict:
             errors["sender_swift_code"] = "A SWIFT/BIC code has 8 or 11 characters, e.g. HSBCGB2L."
         if not out["transfer_date"]:
             errors["transfer_date"] = "Enter the date you made the transfer."
+        country = (data.get("sender_bank_country") or "Bangladesh").strip()
+        account = (data.get("sender_account") or "").strip().replace(" ", "")
+        address = (data.get("sender_address") or "").strip()
+        charges = (data.get("charges_option") or "").strip().upper()
+        if charges and charges not in ("OUR", "SHA", "BEN"):
+            errors["charges_option"] = "Choose OUR, SHA or BEN."
+        if is_international(country):
+            # FATF Recommendation 16: a cross-border wire must carry the originator's
+            # name, account number and address.
+            if len(account) < 5:
+                errors["sender_account"] = "For a transfer from abroad, enter the sender's account number or IBAN."
+            if len(address) < 5:
+                errors["sender_address"] = "For a transfer from abroad, enter the sender's address."
         out.update(
             sender_name=name,
             sender_bank_name=bank,
-            sender_account=(data.get("sender_account") or "").strip().replace(" ", ""),
-            sender_bank_country=(data.get("sender_bank_country") or "Bangladesh").strip(),
+            sender_account=account,
+            sender_bank_country=country,
             sender_swift_code=swift,
+            sender_address=address,
+            charges_option=charges,
             currency=currency,
         )
 
@@ -110,6 +131,15 @@ def submit_payment(*, order: Order, buyer, data: dict) -> PaymentSubmission:
 
     method = order.payment_method
     fields = _clean(data, method)
+    if not fields["payment_purpose"]:
+        fields["payment_purpose"] = f"Payment for fabric, order {order.order_number}"
+
+    receipt_id = data.get("receipt_id")
+    if receipt_id:
+        receipt = UploadedImage.objects.filter(id=receipt_id, is_private=True, company=buyer).first()
+        if receipt is None:
+            raise ValidationError("Attach the receipt again.", details={"receipt_id": "Receipt not found."})
+        fields["receipt"] = receipt
     reused = PaymentSubmission.objects.filter(
         method=method, transaction_id__iexact=fields["transaction_id"]
     ).exclude(status=SubmissionStatus.REJECTED)
