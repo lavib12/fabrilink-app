@@ -59,19 +59,21 @@ EXCEPTION_TRANSITIONS = {
     OrderStatusChoices.CANCELLED: {OrderStatusChoices.REFUNDED},
 }
 
+# Plain-language step names shown to buyers. The app shows its own translated wording
+# per status; staff notes (if any) are kept in the event description.
 STATUS_EVENT_TITLES = {
-    OrderStatusChoices.PICKUP_SCHEDULED: "Pickup Scheduled from Mill",
-    OrderStatusChoices.PICKED_UP: "Picked Up from Mill",
-    OrderStatusChoices.AT_HUB: "Received at Central Hub & Scanned",
-    OrderStatusChoices.CUTTING: "Precision Machine Cutting in Progress",
-    OrderStatusChoices.CUT_DONE: "Precision Cut Completed",
-    OrderStatusChoices.PACKED: "Packed & Barcode Tag Attached",
-    OrderStatusChoices.OUT_FOR_DELIVERY: "Handed to Courier (Out for Delivery)",
-    OrderStatusChoices.DELIVERED: "Delivered to Boutique",
-    OrderStatusChoices.COMPLETED: "Completed & Settled",
-    OrderStatusChoices.CANCELLED: "Order Cancelled",
-    OrderStatusChoices.DISPUTED: "Dispute Raised",
-    OrderStatusChoices.REFUNDED: "Refund Issued",
+    OrderStatusChoices.PICKUP_SCHEDULED: "Pickup booked",
+    OrderStatusChoices.PICKED_UP: "Collected from the mill",
+    OrderStatusChoices.AT_HUB: "Arrived at the cutting hub",
+    OrderStatusChoices.CUTTING: "Being cut",
+    OrderStatusChoices.CUT_DONE: "Cutting finished",
+    OrderStatusChoices.PACKED: "Packed",
+    OrderStatusChoices.OUT_FOR_DELIVERY: "On the way to you",
+    OrderStatusChoices.DELIVERED: "Delivered",
+    OrderStatusChoices.COMPLETED: "Completed",
+    OrderStatusChoices.CANCELLED: "Order cancelled",
+    OrderStatusChoices.DISPUTED: "Problem reported",
+    OrderStatusChoices.REFUNDED: "Refunded",
 }
 
 
@@ -435,8 +437,9 @@ def transition_order_status(
         order=order,
         from_status=from_status,
         to_status=new_status,
-        title=STATUS_EVENT_TITLES.get(new_status, f"Order status updated to {new_status}"),
-        description=notes or f"Order transitioned from {from_status} to {new_status}.",
+        title=STATUS_EVENT_TITLES.get(new_status, "Order updated"),
+        # Only a real note from staff or the buyer; the app explains each step itself.
+        description=notes,
         location=location or "Tejgaon Central Hub",
         actor=actor,
     )

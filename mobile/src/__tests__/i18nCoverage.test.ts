@@ -56,6 +56,13 @@ describe("translation coverage", () => {
       "pay.walletSteps": ["PERSONAL", "MERCHANT", "AGENT"],
       "pay.form.chargesHint": ["OUR", "SHA", "BEN"],
       "accounts.type": ["PERSONAL", "MERCHANT", "AGENT"],
+      ...Object.fromEntries(
+        [
+          "placedAwaiting", "placedPaid", "paymentSent", "paymentRejected", "paymentConfirmed", "PAID_CREDIT_APPROVED",
+          "PICKUP_SCHEDULED", "PICKED_UP", "AT_HUB", "CUTTING", "CUT_DONE", "PACKED", "OUT_FOR_DELIVERY", "DELIVERED",
+          "COMPLETED", "CANCELLED", "DISPUTED", "REFUNDED",
+        ].map((k) => [`track.${k}`, ["title", "body"]])
+      ),
       "gateway.back": ["success", "successBody", "fail", "failBody", "cancel", "cancelBody"],
       accounts: [
         "bkash_number", "nagad_number", "bank_account_name", "bank_account_number", "bank_name", "bank_branch",

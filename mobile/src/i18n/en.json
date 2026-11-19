@@ -693,5 +693,79 @@
       "cancel": "Payment cancelled",
       "cancelBody": "Your fabric is still held. Tap Pay when you're ready."
     }
+  },
+  "track": {
+    "placedAwaiting": {
+      "title": "Order placed",
+      "body": "Your fabric is held for you. Pay to start cutting."
+    },
+    "placedPaid": {
+      "title": "Order placed",
+      "body": "Your order is confirmed. The mill will get your fabric ready."
+    },
+    "paymentSent": {
+      "title": "Payment sent for checking",
+      "body": "FabriLink is checking your payment."
+    },
+    "paymentRejected": {
+      "title": "Payment not confirmed",
+      "body": "We couldn't match your payment. Please check and send it again."
+    },
+    "paymentConfirmed": {
+      "title": "Payment confirmed",
+      "body": "Thank you! Your order is confirmed and the mill is getting the fabric ready."
+    },
+    "PAID_CREDIT_APPROVED": {
+      "title": "Order confirmed",
+      "body": "The mill is getting your fabric ready."
+    },
+    "PICKUP_SCHEDULED": {
+      "title": "Pickup booked",
+      "body": "Our van will collect your fabric from the mill."
+    },
+    "PICKED_UP": {
+      "title": "Collected from the mill",
+      "body": "Your fabric is on its way to our cutting hub."
+    },
+    "AT_HUB": {
+      "title": "Arrived at the cutting hub",
+      "body": "Your fabric has reached our hub in Tejgaon."
+    },
+    "CUTTING": {
+      "title": "Being cut",
+      "body": "Your fabric is being cut to the exact length you ordered."
+    },
+    "CUT_DONE": {
+      "title": "Cutting finished",
+      "body": "Your fabric has been cut and checked."
+    },
+    "PACKED": {
+      "title": "Packed",
+      "body": "Your fabric is packed and labelled for delivery."
+    },
+    "OUT_FOR_DELIVERY": {
+      "title": "On the way to you",
+      "body": "The courier has your parcel and is bringing it to you."
+    },
+    "DELIVERED": {
+      "title": "Delivered",
+      "body": "Your fabric has been delivered. Thank you for ordering with FabriLink!"
+    },
+    "COMPLETED": {
+      "title": "Completed",
+      "body": "This order is complete."
+    },
+    "CANCELLED": {
+      "title": "Order cancelled",
+      "body": "This order was cancelled and the fabric went back to the mill."
+    },
+    "DISPUTED": {
+      "title": "Problem reported",
+      "body": "We're looking into the problem with this order."
+    },
+    "REFUNDED": {
+      "title": "Refunded",
+      "body": "Your money has been refunded."
+    }
   }
 }

@@ -62,8 +62,40 @@ export function OrderCard({ order, showBuyer = false }: { order: Order; showBuye
   );
 }
 
+const STEP_KEYS = new Set([
+  "PAID_CREDIT_APPROVED", "PICKUP_SCHEDULED", "PICKED_UP", "AT_HUB", "CUTTING", "CUT_DONE", "PACKED",
+  "OUT_FOR_DELIVERY", "DELIVERED", "COMPLETED", "CANCELLED", "DISPUTED", "REFUNDED",
+]);
+
+/**
+ * Turns a tracking event into a friendly title and sentence in the app's language.
+ * Notes written by staff or the buyer (e.g. a cancel reason) are kept as `note`;
+ * the server's older technical text ("Order transitioned from …") is dropped.
+ */
+export function describeEvent(e: TrackingEvent, t: (k: string) => string): { title: string; body: string; note: string } {
+  const desc = (e.description || "").trim();
+  const technical = desc.startsWith("Order transitioned from") || desc.startsWith("Breakdown hold confirmed");
+  if (e.from_status === "DRAFT") {
+    const key = e.to_status === "REQUESTED" ? "placedAwaiting" : "placedPaid";
+    return { title: t(`track.${key}.title`), body: t(`track.${key}.body`), note: "" };
+  }
+  if (e.title === "Payment details submitted") {
+    return { title: t("track.paymentSent.title"), body: t("track.paymentSent.body"), note: "" };
+  }
+  if (e.title === "Payment not confirmed") {
+    return { title: t("track.paymentRejected.title"), body: t("track.paymentRejected.body"), note: desc };
+  }
+  if (e.from_status !== e.to_status && STEP_KEYS.has(e.to_status)) {
+    const key = e.from_status === "REQUESTED" && e.to_status === "PAID_CREDIT_APPROVED" ? "paymentConfirmed" : e.to_status;
+    const systemNote = technical || key === "paymentConfirmed" || desc.startsWith("Recorded by admin");
+    return { title: t(`track.${key}.title`), body: t(`track.${key}.body`), note: systemNote ? "" : desc };
+  }
+  return { title: e.title, body: technical ? "" : desc, note: "" };
+}
+
 export function OrderTimeline({ events }: { events: TrackingEvent[] }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   // Newest first.
   const sorted = [...events].sort((a, b) => b.created_at.localeCompare(a.created_at));
   return (
@@ -71,6 +103,7 @@ export function OrderTimeline({ events }: { events: TrackingEvent[] }) {
       {sorted.map((e, i) => {
         const isLatest = i === 0;
         const isLast = i === sorted.length - 1;
+        const d = describeEvent(e, t);
         return (
           <Row key={e.id} style={{ alignItems: "stretch", gap: spacing.md }}>
             <View style={{ alignItems: "center", width: 20 }}>
@@ -84,9 +117,10 @@ export function OrderTimeline({ events }: { events: TrackingEvent[] }) {
             </View>
             <View style={{ flex: 1, paddingBottom: spacing.lg, gap: 2 }}>
               <Text variant="label" color={isLatest ? colors.primary : colors.text}>
-                {e.title}
+                {d.title}
               </Text>
-              {e.description ? <Text muted>{e.description}</Text> : null}
+              {d.body ? <Text muted>{d.body}</Text> : null}
+              {d.note ? <Text>“{d.note}”</Text> : null}
               {e.location ? (
                 <Row style={{ gap: 4 }}>
                   <Ionicons name="location-outline" size={12} color={colors.textMuted} />
